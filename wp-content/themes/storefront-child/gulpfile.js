@@ -3,12 +3,14 @@ var gulp = require('gulp');
 var minifyCss = require('gulp-minify-css');
 var concat = require('gulp-concat');
 var sass = require('gulp-sass');
+var sassGlob = require('gulp-sass-glob');
 var browsersync = require('browser-sync');
 var reload = browsersync.reload;
 
 // Compile and minify Sass
 gulp.task('sass', function () {
   return gulp.src('./sass/*.scss')
+    .pipe(sassGlob())
     .pipe(sass().on('error', sass.logError))
       .pipe(minifyCss({
           keepSpecialComments: 1

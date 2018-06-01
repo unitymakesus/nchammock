@@ -6,3 +6,8 @@ Author: Woo
 Author URI: http://woocommerce.com
 Template: storefront
 */
+
+@import "./vendor/*";
+@import "./global/*";
+@import "./components/*";
+@import "./layouts/*";

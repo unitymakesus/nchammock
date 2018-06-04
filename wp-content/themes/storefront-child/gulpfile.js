@@ -17,7 +17,7 @@ gulp.task('sass', function () {
       }))
     .pipe(concat('style.css'))
     .pipe(gulp.dest('./'))
-    // .pipe(browsersync.stream());
+    // .pipe(browsersync.stream())
     .pipe(reload({stream:true}));
 });
 
@@ -34,7 +34,8 @@ gulp.task('reload', function () {
 
 // Set up Watchers
 gulp.task('watch', function() {
-  gulp.watch('./sass/*.scss', ['sass']);
+  gulp.watch('./sass/**/*.scss', ['sass']);
+  // gulp.watch('./sass/*.scss', ['sass']);
   gulp.watch(['*.html', '*.php'], ['reload']);
 });
 

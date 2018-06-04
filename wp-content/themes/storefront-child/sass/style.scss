@@ -8,6 +8,7 @@ Template: storefront
 */
 
 @import "./vendor/*";
-@import "./global/*";
+@import "./global/base";
+@import "./global/typography";
 @import "./components/*";
 @import "./layouts/*";

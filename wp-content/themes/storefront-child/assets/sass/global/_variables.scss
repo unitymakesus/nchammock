@@ -1,0 +1,19 @@
+$font-serif: 'Arvo', serif;
+$font-sans-serif: 'Khula', sans-serif;
+
+$color-primary: #EC4E20;
+$color-secondary: #4E9FBE;
+$color-tertiary: #698457;
+
+$color-white: #ffffff;
+
+%shipping-banner {
+  content: 'Free shipping on entire site';
+  background: $color-tertiary;
+  padding: 10px;
+  color: white;
+  border-top: 2px solid $color-primary;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+}

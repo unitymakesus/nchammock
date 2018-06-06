@@ -1,9 +1,8 @@
 {
   "name": "storefront-child",
   "version": "1.0.0",
-  "description": "",
-  "template": "storefront",
-  "main": "gulpfile.js",
+  "description": "Storefront child theme",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,9 +11,12 @@
   "devDependencies": {
     "browser-sync": "^2.24.4",
     "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^5.0.0",
     "gulp-concat": "^2.6.1",
-    "gulp-minify-css": "^1.2.4",
     "gulp-sass": "^4.0.1",
-    "gulp-sass-glob": "^1.0.9"
+    "gulp-sass-glob": "^1.0.9",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-uglify": "^3.0.0",
+    "gulp-watch": "^5.0.0"
   }
 }

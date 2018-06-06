@@ -1,0 +1,50 @@
+#masthead {
+  padding-top: 10px;
+}
+
+.site-header {
+  border-bottom: none;
+  float: none;
+
+  .site-branding {
+    margin: 0;
+  }
+
+  .col-full {
+   display: flex;
+   justify-content: space-between;
+   max-width: 100%;
+
+    &:before, &:after {
+      content: none;
+    }
+
+    .storefront-primary-navigation {
+      display: none;
+    }
+  }
+}
+
+// Logo
+.custom-logo-link img {
+  width: 60%;
+  margin: 0 auto;
+}
+
+.site-header-cart {
+  width: auto !important;
+  height: 30px;
+
+  .cart-contents {
+    text-align: right;
+    padding: 0;
+
+    &:after {
+      float: none;
+    }
+  }
+}
+
+.site-search {
+  width: auto !important;
+}

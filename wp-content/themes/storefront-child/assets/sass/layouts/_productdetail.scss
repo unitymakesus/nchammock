@@ -1,0 +1,27 @@
+.addl-info {
+  text-align: center;
+}
+
+.woocommerce-tabs .panel h2:first-of-type {
+  display: none;
+}
+
+.woocommerce-tabs ul.tabs li, .woocommerce-tabs ul.tabs{
+  border: none;
+}
+
+.woocommerce-tabs ul.tabs li:first-of-type {
+  border-bottom: 1px solid $color-primary;
+}
+
+.woocommerce-tabs ul.tabs li.active, .woocommerce-tabs ul.tabs li.active a {
+  color: $color-primary;
+}
+
+.single-product div.product p.price {
+  margin: 10px 0;
+
+  span {
+    font-size: 25px;
+  }
+}

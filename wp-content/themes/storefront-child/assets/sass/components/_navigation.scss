@@ -1,0 +1,37 @@
+// Primary Navigation
+.primary-navigation {
+  display: flex;
+  justify-content: space-around;
+
+  li {
+    text-align: center;
+    flex: 1;
+
+    a {
+      font-size: 18px;
+      text-decoration: none;
+      padding-bottom: 15px !important;
+    }
+  }
+}
+
+.main-navigation ul li a:hover {
+  color: $color-primary;
+}
+
+.handheld-navigation {
+  display: none;
+}
+
+#menu-secondary-menu {
+  color: white;
+
+  li:before {
+    content: "";
+  }
+}
+
+.site-footer a:not(.button) {
+  color: $color-white;
+  text-decoration: underline;
+}

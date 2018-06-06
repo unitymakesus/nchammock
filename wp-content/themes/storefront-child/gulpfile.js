@@ -1,43 +1,45 @@
-// Require gulp packages
+"use strict";
 var gulp = require('gulp');
-var minifyCss = require('gulp-minify-css');
-var concat = require('gulp-concat');
 var sass = require('gulp-sass');
 var sassGlob = require('gulp-sass-glob');
-var browsersync = require('browser-sync');
-var reload = browsersync.reload;
+var sourcemaps = require('gulp-sourcemaps');
+var autoprefixer = require('gulp-autoprefixer');
+var browserSync = require('browser-sync').create();
+var reload = browserSync.reload;
+var concat = require('gulp-concat');
+var uglify = require('gulp-uglify');
+var watch = require('gulp-watch');
 
-// Compile and minify Sass
-gulp.task('sass', function () {
-  return gulp.src('./sass/*.scss')
-    .pipe(sassGlob())
-    .pipe(sass().on('error', sass.logError))
-      .pipe(minifyCss({
-          keepSpecialComments: 1
-      }))
-    .pipe(concat('style.css'))
-    .pipe(gulp.dest('./'))
-    // .pipe(browsersync.stream())
-    .pipe(reload({stream:true}));
-});
-
-// Set up Browsersync
 gulp.task('browser-sync', function() {
-  browsersync.init({
-  proxy: 'nchammock.test'
-  });
+  browserSync.init({
+    proxy: 'nchammock.test'
+  })
 });
 
-gulp.task('reload', function () {
-  browsersync.reload();
+gulp.task('sass', function () {
+  return gulp.src('assets/sass/**/*.scss')
+    .pipe(sassGlob())
+    .pipe(sourcemaps.init())
+    .pipe(autoprefixer({ browsers: ['last 2 versions'], cascade: false }))
+    .pipe(sass({ outputStyle:'compressed'}).on('error', sass.logError))
+    .pipe(sourcemaps.write('./maps'))
+    .pipe(gulp.dest('./'));
 });
 
-// Set up Watchers
 gulp.task('watch', function() {
-  gulp.watch('./sass/**/*.scss', ['sass']);
-  // gulp.watch('./sass/*.scss', ['sass']);
-  gulp.watch(['*.html', '*.php'], ['reload']);
+    gulp.watch('assets/sass/*.scss', ['sass']).on("change", browserSync.reload);
+    gulp.watch('assets/sass/**/*.scss', ['sass']).on("change", browserSync.reload);
+    gulp.watch('assets/js/**/*.js', ['js']).on("change", browserSync.reload);
 });
 
-// Default Gulp tasks
-gulp.task('default', ['sass', 'browser-sync', 'watch' ]);
+var jsInput = { js: 'assets/js/dev/**/*.js' }
+var jsOutput = 'assets/js/dist/';
+
+gulp.task('js', function(){
+  return gulp.src(jsInput.js)
+    .pipe(concat('app.min.js'))
+    .pipe(uglify())
+    .pipe(gulp.dest('./assets/js/dist/'))
+});
+
+gulp.task('default',['sass', 'browser-sync','watch', 'js']);

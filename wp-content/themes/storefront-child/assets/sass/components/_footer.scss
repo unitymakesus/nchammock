@@ -39,7 +39,7 @@
 
 .footer-widget-2 {
   display: flex;
-  justify-content: space-around;
+  justify-content: flex-end;
 
   #text-3 {
     p:first-of-type {
@@ -53,6 +53,10 @@
         left: -10px;
       }
     }
+  }
+
+  #nav_menu-3 {
+    margin-right: 15%;
   }
 }
 

@@ -35,3 +35,8 @@
   color: $color-white;
   text-decoration: underline;
 }
+
+.site-header-cart:hover .widget_shopping_cart {
+  left: -100px !important;
+  width: 250px !important;
+}

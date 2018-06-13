@@ -2,4 +2,16 @@
   .site-header .col-full {
     display: block;
   }
+
+  .footer-widgets {
+    padding: 0;
+
+    .authorized-retailers img {
+      width: 33%;
+    }
+
+    .footer-widget-2 {
+      justify-content: space-between;
+    }
+  }
 }

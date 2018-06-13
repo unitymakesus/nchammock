@@ -13,17 +13,14 @@ function header_add_and_remove() {
   remove_action( 'storefront_header', 'storefront_secondary_navigation', 30 );
 }
 add_action( 'init' , 'header_add_and_remove');
-?>
 
-<?php
 // Customizing Footer Hooks
 function footer_remove() {
   remove_action( 'storefront_footer', 'storefront_credit', 20 );
 }
 add_action( 'init' , 'footer_remove');
-?>
 
-<?php
+
 // Customizing Homepage Hooks
 function homepage_add_and_remove() {
   remove_action( 'homepage', 'storefront_product_categories', 20 );
@@ -34,10 +31,7 @@ function homepage_add_and_remove() {
   remove_action( 'storefront_homepage', 'storefront_homepage_header', 10 );
 }
 add_action( 'init' , 'homepage_add_and_remove');
-?>
 
-
-<?php
 // Customizing Site Logo
 function custom_logo_size() {
   add_theme_support('custom-logo', apply_filters( 'storefront_custom_logo_args', array(
@@ -47,17 +41,13 @@ function custom_logo_size() {
   )));
 }
 add_action( 'after_setup_theme', 'custom_logo_size');
-?>
 
-<?php
 // Enqueuing Google Fonts
 function add_google_font() {
   wp_enqueue_style( 'add_google_font', 'https://fonts.googleapis.com/css?family=Arvo:400,400i,700,700i|Khula:300,400,600,700,800', false );
 }
 add_action( 'wp_enqueue_scripts', 'add_google_font' );
-?>
 
-<?php
 // Renaming Product Tabs
 add_filter( 'woocommerce_product_tabs', 'woo_rename_tabs', 98 );
 function woo_rename_tabs( $tabs ) {
@@ -66,9 +56,7 @@ function woo_rename_tabs( $tabs ) {
 	$tabs['additional_information']['title'] = __( 'Specifications' );
 	return $tabs;
 }
-?>
 
-<?php
 // Adjusting Featured Products
 if ( ! function_exists( 'storefront_featured_products' ) ) {
 	function storefront_featured_products( $args ) {
@@ -102,9 +90,7 @@ if ( ! function_exists( 'storefront_featured_products' ) ) {
 		}
 	}
 }
-?>
 
-<?php
 // Footer Authorized Retailers Shortcode
   function auth_retailers_shortcode() { ob_start(); ?>
 
@@ -117,4 +103,3 @@ if ( ! function_exists( 'storefront_featured_products' ) ) {
 <?php
   return ob_get_clean(); }
   add_shortcode('authorize_retailers', 'auth_retailers_shortcode');
-?>

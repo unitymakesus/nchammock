@@ -8,12 +8,13 @@ $color-tertiary: #698457;
 $color-white: #ffffff;
 
 %shipping-banner {
-  content: 'Free shipping on entire site';
+  content: 'Free Shipping on All Products!';
+  font-family: $font-serif;
+  font-size: 20px;
   background: $color-tertiary;
   padding: 10px;
   color: white;
-  border-top: 2px solid $color-primary;
   width: 100%;
   text-align: center;
-  margin-bottom: 20px;
+  position: absolute;
 }

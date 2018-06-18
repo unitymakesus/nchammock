@@ -16,9 +16,26 @@ ul.products li.product {
   font-size: 16px;
 }
 
-
 input[type=search] {
   background: transparent;
   border: 1px solid $color-primary;
   box-shadow: none;
+}
+
+#post-21 {
+  border-top: 2px solid $color-primary;
+
+  &::after {
+    @extend %shipping-banner;
+    bottom: 0;
+  }
+}
+
+#site-navigation::after {
+  @extend %shipping-banner;
+  border-top: 2px solid $color-primary;
+}
+
+.woocommerce-breadcrumb {
+  display: none;
 }

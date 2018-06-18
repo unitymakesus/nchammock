@@ -1,7 +1,7 @@
 body {
   font-family: $font-serif;
   font-weight: 400;
-  color: black;
+  color: $color-black;
 }
 
 h1 {
@@ -26,8 +26,8 @@ p {
 }
 
 a {
-  color: black;
-  
+  color: $color-black;
+
   &:hover {
     color: $color-tertiary;
   }

@@ -1,7 +1,4 @@
-.addl-info {
-  text-align: center;
-}
-
+// Built in WooCommerce Styles
 .woocommerce-tabs .panel h2:first-of-type {
   display: none;
 }
@@ -18,10 +15,16 @@
   color: $color-primary;
 }
 
+
+// Product Detail Styling
 .single-product div.product p.price {
   margin: 10px 0;
 
   span {
     font-size: 25px;
   }
+}
+
+.addl-info {
+  text-align: center;
 }

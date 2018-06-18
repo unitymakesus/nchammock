@@ -1,12 +1,17 @@
+// Fonts
 $font-serif: 'Arvo', serif;
 $font-sans-serif: 'Khula', sans-serif;
 
+
+// Colors
 $color-primary: #EC4E20;
 $color-secondary: #4E9FBE;
 $color-tertiary: #698457;
-
 $color-white: #ffffff;
+$color-black: #000000;
 
+
+// Free Shipping Banner
 %shipping-banner {
   content: 'Free Shipping on All Products!';
   font-family: $font-serif;

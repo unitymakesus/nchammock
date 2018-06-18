@@ -1,4 +1,4 @@
-// Primary Navigation
+// Main Navigation
 .primary-navigation {
   display: flex;
   justify-content: space-around;
@@ -19,10 +19,8 @@
   color: $color-primary;
 }
 
-.handheld-navigation {
-  display: none;
-}
 
+// Footer Navigation
 #menu-secondary-menu {
   color: white;
 
@@ -36,7 +34,8 @@
   text-decoration: underline;
 }
 
-.site-header-cart:hover .widget_shopping_cart {
-  left: -100px !important;
-  width: 250px !important;
+
+// Remove WooCommerce Navigation
+.handheld-navigation {
+  display: none;
 }

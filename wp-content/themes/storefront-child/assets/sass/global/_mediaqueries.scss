@@ -1,8 +1,42 @@
 @media (max-width: 767px) {
+  // Header
   .site-header .col-full {
     display: block;
   }
 
+  .site-header-cart {
+    display: none;
+  }
+
+  .woocommerce-active .site-branding {
+    display: flex;
+    justify-content: center;
+    float: none;
+  }
+
+  .main-navigation  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  // Banner
+  #site-navigation::after {
+    position: relative;
+    font-size: 15px;
+    padding: 5px;
+    margin-top: 15px;
+  }
+
+  #post-21 {
+    border: none;
+
+    &::after {
+      display: none;
+    }
+  }
+
+  // Footer
   .footer-widgets {
     padding: 0;
 

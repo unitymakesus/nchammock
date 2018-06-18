@@ -1,11 +1,15 @@
+// Home Hero Image
 .home .has-post-thumbnail {
   height: 500px;
 }
 
+// Product Alignment
 ul.products li.product {
   text-align: left;
 }
 
+
+// Built in WooCommerce Styling
 .woocommerce-loop-product__title {
   text-decoration: underline;
   font-size: 18px !important;
@@ -14,24 +18,4 @@ ul.products li.product {
 .woocommerce-Price-amount {
   color: $color-primary;
   font-size: 16px;
-}
-
-input[type=search] {
-  background: transparent;
-  border: 1px solid $color-primary;
-  box-shadow: none;
-}
-
-#post-21 {
-  border-top: 2px solid $color-primary;
-
-  &::after {
-    @extend %shipping-banner;
-    bottom: 0;
-  }
-}
-
-#site-navigation::after {
-  @extend %shipping-banner;
-  border-top: 2px solid $color-primary;
 }

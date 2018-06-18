@@ -1,16 +1,8 @@
+// Footer Layout
 .site-footer {
   background-color: #474747;
   color: white;
   padding: 30px 0 0 0;
-}
-
-.footer-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: $color-tertiary;
-  color: $color-white;
-  padding: 10px 30px;
 }
 
 .footer-widgets {
@@ -24,16 +16,6 @@
   .widget-title {
     border: none;
     padding: 0;
-  }
-}
-
-.authorized-retailers {
-  display: flex;
-
-  img {
-    height: 115px;
-    padding-right: 30px;
-    width: 150px;
   }
 }
 
@@ -60,13 +42,37 @@
   }
 }
 
+
+// Titles of Widgets
 .widget-title {
   margin-bottom: 0 !important;
 }
 
 
-@media (min-width: 768px){
-  ul.menu li.current-menu-item>a {
-      color: $color-primary;
+// Active Menu Items
+ul.menu li.current-menu-item>a {
+  color: $color-primary;
+}
+
+
+// Authorized Retailers
+.authorized-retailers {
+  display: flex;
+
+  img {
+    height: 115px;
+    padding-right: 30px;
+    width: 150px;
   }
+}
+
+
+// Utility Bar
+.footer-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: $color-tertiary;
+  color: $color-white;
+  padding: 10px 30px;
 }

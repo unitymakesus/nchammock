@@ -1,7 +1,4 @@
-#masthead {
-  padding-top: 10px;
-}
-
+// Global Site Header
 .site-header {
   border-bottom: none;
   float: none;
@@ -25,12 +22,19 @@
   }
 }
 
-// Logo
+#masthead {
+  padding-top: 10px;
+}
+
+
+// Header Logo
 .custom-logo-link img {
   width: 60%;
   margin: 0 auto;
 }
 
+
+// Header Shopping Cart
 .site-header-cart {
   width: auto !important;
   height: 30px;
@@ -45,12 +49,45 @@
   }
 }
 
+.site-header-cart:hover .widget_shopping_cart {
+  left: -100px !important;
+  width: 250px !important;
+}
+
+
+// Header Search
 .site-search {
   width: auto !important;
 }
 
+input[type=search] {
+  background: transparent;
+  border: 1px solid $color-primary;
+  box-shadow: none;
+}
+
+
+// Page Titles
 .entry-title {
   text-align: center;
   font-family: $font-serif;
   text-transform: uppercase;
+}
+
+
+// Free Shipping Banner Homepage
+#post-21 {
+  border-top: 2px solid $color-primary;
+
+  &::after {
+    @extend %shipping-banner;
+    bottom: 0;
+  }
+}
+
+
+// Free Shipping Banner Global
+#site-navigation::after {
+  @extend %shipping-banner;
+  border-top: 2px solid $color-primary;
 }

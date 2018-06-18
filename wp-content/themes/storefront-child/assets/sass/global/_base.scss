@@ -10,11 +10,14 @@ img {
   object-fit: contain;
 }
 
-
 .storefront-product-pagination {
   display: none;
 }
 
 .storefront-sticky-add-to-cart {
+  display: none;
+}
+
+.woocommerce-breadcrumb {
   display: none;
 }

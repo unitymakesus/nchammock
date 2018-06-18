@@ -8,7 +8,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: $color-primary;
+  background: $color-tertiary;
   color: $color-white;
   padding: 10px 30px;
 }
@@ -62,4 +62,11 @@
 
 .widget-title {
   margin-bottom: 0 !important;
+}
+
+
+@media (min-width: 768px){
+  ul.menu li.current-menu-item>a {
+      color: $color-primary;
+  }
 }

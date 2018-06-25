@@ -102,19 +102,6 @@ function custom_widgets_init() {
 }
 add_action( 'widgets_init', 'custom_widgets_init' );
 
-
-// Only ship to the continental US
-function patricks_only_ship_to_continental_us( $available_methods ) {
-	global $woocommerce;
-	$excluded_states = array( 'AK','HI','GU','PR' );
-	if( in_array( $woocommerce->customer->get_shipping_state(), $excluded_states ) ) {
-		$available_methods = array();
-	}
-	return $available_methods;
-}
-add_filter( 'woocommerce_package_rates', 'patricks_only_ship_to_continental_us', 10 );
-
-
 // Footer Authorized Retailers Shortcode
 function auth_retailers_shortcode() { ob_start(); ?>
 

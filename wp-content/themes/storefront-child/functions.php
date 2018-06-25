@@ -91,8 +91,19 @@ if ( ! function_exists( 'storefront_featured_products' ) ) {
 	}
 }
 
+// Adding sidebar for Brand filter
+function custom_widgets_init() {
+	register_sidebar( array(
+		'name'          => 'Brand Widget',
+		'id'            => 'brand_widget',
+		'before_widget' => '<aside>',
+		'after_widget'  => '</aside>',
+	) );
+}
+add_action( 'widgets_init', 'custom_widgets_init' );
+
 // Footer Authorized Retailers Shortcode
-  function auth_retailers_shortcode() { ob_start(); ?>
+function auth_retailers_shortcode() { ob_start(); ?>
 
 <div class="authorized-retailers">
   <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/images/cacoon.png"/>

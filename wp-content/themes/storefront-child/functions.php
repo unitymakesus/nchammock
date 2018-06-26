@@ -57,6 +57,15 @@ function woo_rename_tabs( $tabs ) {
 	return $tabs;
 }
 
+// Reordering Product Tabs
+add_filter( 'woocommerce_product_tabs', 'woo_reorder_tabs', 98 );
+function woo_reorder_tabs( $tabs ) {
+
+	$tabs['additional_information']['priority'] = 5;			// Reviews first
+	$tabs['description']['priority'] = 10;			// Description second
+	return $tabs;
+}
+
 // Adjusting Featured Products
 if ( ! function_exists( 'storefront_featured_products' ) ) {
 	function storefront_featured_products( $args ) {

@@ -17,6 +17,9 @@
             <tag>br_filters</tag>
             <attributes>
                 <attribute>title</attribute>
+                <attribute>text_before_price</attribute>
+                <attribute>text_after_price</attribute>
+                <attribute>description</attribute>
             </attributes>
         </shortcode>
     </shortcodes>

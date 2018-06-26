@@ -108,6 +108,27 @@ class BeRocket_AAPF_Wizard {
                             </label></td>
                         </tr>
                         <tr style="display: table-row;">
+                            <th scope="row"><?php _e('Removed elements', 'BeRocket_AJAX_domain') ?></th>
+                            <td>
+                                <p><?php _e('Select elements that your shop page doesn\'t have to prevent any errors with it', 'BeRocket_AJAX_domain') ?></p>
+                                <div><label>
+                                    <input type="checkbox" name="berocket_aapf_wizard_settings[woocommerce_removes][result_count]" value="1"
+                                    <?php if( ! empty($option['woocommerce_removes']['result_count']) ) echo " checked"; ?>>
+                                    <?php _e('Products count', 'BeRocket_AJAX_domain') ?>
+                                </label></div>
+                                <div><label>
+                                    <input type="checkbox" name="berocket_aapf_wizard_settings[woocommerce_removes][ordering]" value="1"
+                                    <?php if( ! empty($option['woocommerce_removes']['ordering']) ) echo " checked"; ?>>
+                                    <?php _e('Products order by drop down', 'BeRocket_AJAX_domain') ?>
+                                </label></div>
+                                <div><label>
+                                    <input type="checkbox" name="berocket_aapf_wizard_settings[woocommerce_removes][pagination]" value="1"
+                                    <?php if( ! empty($option['woocommerce_removes']['pagination']) ) echo " checked"; ?>>
+                                    <?php _e('Pagination', 'BeRocket_AJAX_domain') ?>
+                                </label></div>
+                            </td>
+                        </tr>
+                        <tr style="display: table-row;">
                             <td colspan="2">
                                 <a href="#custom-js-css" class="wizard_custom_js_css_open"><?php _e('You need some custom JavaScript/CSS code?', 'BeRocket_AJAX_domain') ?></a>
                                 <div class="wizard_custom_js_css" style="display: none;">
@@ -175,9 +196,56 @@ class BeRocket_AAPF_Wizard {
                                 <p><?php _e('Also back button doesn\'t load previous selected filters', 'BeRocket_AJAX_domain') ?></p>
                             </td>
                         </tr>
+                        <tr class="berocket_wizard_only_seo_friendly"<?php if( empty($option['seo_friendly_urls']) ) echo ' style="display:none;"'?>>
+                            <th scope="row"><?php _e('Use slug', 'BeRocket_AJAX_domain') ?></th>
+                            <td>
+                                <input name="berocket_aapf_wizard_settings[slug_urls]" type="checkbox" value="1"<?php if( ! empty($option['slug_urls']) ) echo ' checked'?>>
+                                <?php _e('Replace attribute values ID to Slug in SEO friendly URLs.', 'BeRocket_AJAX_domain') ?>
+                            </td>
+                        </tr>
+                        <tr class="berocket_wizard_only_seo_friendly"<?php if( empty($option['seo_friendly_urls']) ) echo ' style="display:none;"'?>>
+                            <td colspan="2">
+                                <p><?php _e('<strong>IMPORTANT</strong> Please check that Slug for all attribute values without those symbols - _ +', 'BeRocket_AJAX_domain') ?></p>
+                            </td>
+                        </tr>
+                        <tr class="berocket_wizard_only_seo_friendly"<?php if( empty($option['seo_friendly_urls']) ) echo ' style="display:none;"'?>>
+                            <th scope="row"><?php _e('Nice permalink URL', 'BeRocket_AJAX_domain') ?></th>
+                            <td>
+                                <input class="berocket_wizard_nice_urls" name="berocket_aapf_wizard_settings[nice_urls]" type="checkbox" value="1"<?php if( ! empty($option['nice_urls']) ) echo ' checked'?>>
+                                <?php _e('Use WordPress permalinks instead GET query', 'BeRocket_AJAX_domain') ?>
+                            </td>
+                        </tr>
+                        <tr class="berocket_wizard_only_seo_friendly"<?php if( empty($option['seo_friendly_urls']) ) echo ' style="display:none;"'?>>
+                            <td colspan="2">
+                                <p><?php _e('<strong>IMPORTANT</strong> WordPress permalinks must be set to Post name(Custom structure: /%postname%/ )', 'BeRocket_AJAX_domain') ?></p>
+                                <p><?php _e('Not working on any custom page(Generated with any page builder or with help of shortcodes)', 'BeRocket_AJAX_domain') ?></p>
+                                <p><?php _e('Not compatible with any other plugin that change WooCommerce permalinks', 'BeRocket_AJAX_domain') ?></p>
+                            </td>
+                        </tr>
+                        <tr class="berocket_wizard_only_seo_friendly"<?php if( empty($option['seo_friendly_urls']) ) echo ' style="display:none;"'?>>
+                            <td colspan="2" class="berocket_wizard_only_nice_urls"<?php if( empty($option['nice_urls']) ) echo ' style="display:none;"'?>>
+                                <?php BeRocket_AAPF::br_get_template_part( 'permalink_option' ); ?>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
+            <script>
+            jQuery(document).on('change', '.berocket_wizard_seo_friendly', function() {
+                if( jQuery(this).prop('checked') ) {
+                    jQuery('.berocket_wizard_only_seo_friendly').show();
+                } else {
+                    jQuery('.berocket_wizard_only_seo_friendly').hide();
+                }
+            });
+            jQuery(document).on('change', '.berocket_wizard_nice_urls', function() {
+                if( jQuery(this).prop('checked') ) {
+                    jQuery('.berocket_wizard_only_nice_urls').show();
+                } else {
+                    jQuery('.berocket_wizard_only_nice_urls').hide();
+                }
+            });
+            </script>
             <?php wp_nonce_field( $wizard->page_id ); ?>
             <p class="next-step">
                 <input type="submit" class="button-primary button button-large button-next" value="<?php esc_attr_e( "Next Step", 'BeRocket_AJAX_domain' ); ?>" name="save_step" />
@@ -192,7 +260,17 @@ class BeRocket_AAPF_Wizard {
         if( empty($_POST['berocket_aapf_wizard_settings']) || ! is_array($_POST['berocket_aapf_wizard_settings']) ) {
             $_POST['berocket_aapf_wizard_settings'] = array();
         }
-        $option_new = array_merge(array('seo_friendly_urls' => ''), $_POST['berocket_aapf_wizard_settings']);
+        $option_new = array_merge(array('seo_friendly_urls' => '', 'slug_urls' => '', 'nice_urls' => ''), $_POST['berocket_aapf_wizard_settings']);
+        if( empty($option_new['seo_friendly_urls']) ) {
+            $option_new['slug_urls'] = '';
+            $option_new['nice_urls'] = '';
+        }
+        if( ! empty($option_new['nice_urls']) ) {
+            if( ! empty($_POST['berocket_permalink_option']) && is_array($_POST['berocket_permalink_option']) ) {
+                $default_values = BeRocket_AAPF::$default_permalink;
+                BeRocket_AAPF::save_permalink_option($default_values);
+            }
+        }
         $option = array_merge($option, $option_new);
         $option = BeRocket_AAPF::sanitize_aapf_option($option);
         update_option( 'br_filters_options', $option );
@@ -214,6 +292,7 @@ class BeRocket_AAPF_Wizard {
                                     <option value="custom"><?php _e('Custom', 'BeRocket_AJAX_domain') ?></option>
                                     <option value="show_all"><?php _e('Show all attributes (very fast)', 'BeRocket_AJAX_domain') ?></option>
                                     <option value="hide_page"><?php _e('Hide empty attributes by page (fast)', 'BeRocket_AJAX_domain') ?></option>
+                                    <option value="hide_empty"><?php _e('Hide empty attribute by filters (slow)', 'BeRocket_AJAX_domain') ?></option>
                                 </select>
                             </td>
                         </tr>
@@ -227,6 +306,12 @@ class BeRocket_AAPF_Wizard {
                             <td colspan="2">
                                 <h4><?php _e('Hide empty attributes by page', 'BeRocket_AJAX_domain') ?></h4>
                                 <p><?php _e('Display only attribute values with products, but do not check selected filters. Any first selected filter will return products, but next filters can return "no products" message', 'BeRocket_AJAX_domain') ?></p>
+                            </td>
+                        </tr>
+                        <tr class="attribute_count_preset_info attribute_count_preset_info_hide_empty" style="display: none;" data-count="58">
+                            <td colspan="2">
+                                <h4><?php _e('Hide empty attribute by filters', 'BeRocket_AJAX_domain') ?></h4>
+                                <p><?php _e('Display only attribute values with products. Only attribute values with products will be used, also after any filtering. But it work slow, because recount products for each attribute. Can work slow on bad server and with a lot of products', 'BeRocket_AJAX_domain') ?></p>
                             </td>
                         </tr>
                         <tr style="display: table-row;">
@@ -254,6 +339,28 @@ class BeRocket_AAPF_Wizard {
                                 <?php if( ! empty($option['hide_value']['sel']) ) echo " checked"; ?>>
                                 <?php _e('Hide selected values', 'BeRocket_AJAX_domain') ?>
                                 </label></div>
+                                <div><label><input name="berocket_aapf_wizard_settings[hide_value][empty]" class="attribute_count_preset_8" type="checkbox" value="1"
+                                <?php if( ! empty($option['hide_value']['empty']) ) echo " checked"; ?>>
+                                <?php _e('Hide empty widget', 'BeRocket_AJAX_domain') ?>
+                                </label></div>
+                                <div><label><input name="berocket_aapf_wizard_settings[hide_value][button]" class="attribute_count_preset_16" type="checkbox" value="1"
+                                <?php if( ! empty($option['hide_value']['button']) ) echo " checked"; ?>>
+                                <?php _e('Hide "Show/Hide value(s)" button', 'BeRocket_AJAX_domain') ?>
+                                </label></div>
+                            </td>
+                        </tr>
+                        <tr style="display: table-row;">
+                            <th scope="row"><?php _e('Reload amount of products', 'BeRocket_AJAX_domain') ?></th>
+                            <td>
+                                <label><input name="berocket_aapf_wizard_settings[recount_products]" class="attribute_count_preset_32" type="checkbox" value="1"
+                                <?php if( ! empty($option['recount_products']) ) echo " checked"; ?>>
+                                <?php _e('Use filters on products count display', 'BeRocket_AJAX_domain') ?>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr style="display: table-row;">
+                            <td colspan="2">
+                                <?php _e('Slow down site load speed, because uses additional query for each filter. Replaces attribute values using selected filters to use correct count of products for each value. "Hide values without products" option do not work without this option. Also uses to display correct products count with attribute values after filtering', 'BeRocket_AJAX_domain') ?>
                             </td>
                         </tr>
                     </tbody>
@@ -294,7 +401,7 @@ class BeRocket_AAPF_Wizard {
         if( empty($_POST['berocket_aapf_wizard_settings']) || ! is_array($_POST['berocket_aapf_wizard_settings']) ) {
             $_POST['berocket_aapf_wizard_settings'] = array();
         }
-        $option_new = array_merge(array('show_all_values' => '', 'hide_value' => array('o' => '', 'sel' => '')), $_POST['berocket_aapf_wizard_settings']);
+        $option_new = array_merge(array('show_all_values' => '', 'hide_value' => array('o' => '', 'sel' => '', 'empty' => '', 'button' => ''), 'recount_products' => ''), $_POST['berocket_aapf_wizard_settings']);
         $option = array_merge($option, $option_new);
         $option = BeRocket_AAPF::sanitize_aapf_option($option);
         update_option( 'br_filters_options', $option );
@@ -326,6 +433,33 @@ class BeRocket_AAPF_Wizard {
                                 </label>
                             </td>
                         </tr>
+                        <tr style="display: table-row;">
+                            <th scope="row"><?php _e('Show selected filters', 'BeRocket_AJAX_domain') ?></th>
+                            <td>
+                                <label><input name="berocket_aapf_wizard_settings[selected_area_show]" type="checkbox" value="1"
+                                <?php if( ! empty($option['selected_area_show']) ) echo " checked"; ?>>
+                                <?php _e('Show selected filters above products. Also you can use widget to show selected filters', 'BeRocket_AJAX_domain') ?>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr style="display: table-row;">
+                            <th scope="row"><?php _e('Display products', 'BeRocket_AJAX_domain') ?></th>
+                            <td>
+                                <label><input name="berocket_aapf_wizard_settings[products_only]" type="checkbox" value="1"
+                                <?php if( ! empty($option['products_only']) ) echo " checked"; ?>>
+                                <?php _e('Display always products when filters selected. Use this when you have categories and subcategories on shop pages, but you want to display products on filtering', 'BeRocket_AJAX_domain') ?>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr style="display: table-row;">
+                            <th scope="row"><?php _e('Search page fix', 'BeRocket_AJAX_domain') ?></th>
+                            <td>
+                                <label><input name="berocket_aapf_wizard_settings[search_fix]" type="checkbox" value="1"
+                                <?php if( ! empty($option['search_fix']) ) echo " checked"; ?>>
+                                <?php _e('Disable redirection, when search page return only one product<br>Enable it only if you will use filters on search page', 'BeRocket_AJAX_domain') ?>
+                                </label>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -345,7 +479,7 @@ class BeRocket_AAPF_Wizard {
         if( empty($_POST['berocket_aapf_wizard_settings']) || ! is_array($_POST['berocket_aapf_wizard_settings']) ) {
             $_POST['berocket_aapf_wizard_settings'] = array();
         }
-        $option_new = array_merge(array('first_page_jump' => '', 'scroll_shop_top' => ''), $_POST['berocket_aapf_wizard_settings']);
+        $option_new = array_merge(array('first_page_jump' => '', 'scroll_shop_top' => '', 'selected_area_show' => '', 'products_only' => '', 'search_fix' => ''), $_POST['berocket_aapf_wizard_settings']);
         $option = array_merge($option, $option_new);
         $option = BeRocket_AAPF::sanitize_aapf_option($option);
         update_option( 'br_filters_options', $option );

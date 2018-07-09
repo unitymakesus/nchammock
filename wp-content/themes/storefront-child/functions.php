@@ -111,6 +111,18 @@ function custom_widgets_init() {
 }
 add_action( 'widgets_init', 'custom_widgets_init' );
 
+// Disable shipping
+add_filter( 'woocommerce_states', 'custom_woocommerce_states' );
+
+function custom_woocommerce_states( $states ) {
+$excluded_states = array('AA', 'AK', 'HI', 'AE', 'AP', 'AS', 'GU', 'MP', 'PR', 'UM', 'VI', 'HI');
+foreach($excluded_states as $no_state){
+unset($states['US'][$no_state]);
+}
+
+return $states;
+}
+
 // Footer Authorized Retailers Shortcode
 function auth_retailers_shortcode() { ob_start(); ?>
 

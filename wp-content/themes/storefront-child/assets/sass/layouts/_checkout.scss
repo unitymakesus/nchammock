@@ -32,3 +32,9 @@
 #payment .payment_methods li .payment_box {
   padding-bottom: 0;
 }
+
+#billing_state_field::after {
+  content: "Please call for ordering from Alaska and Hawaii";
+  color: $color-primary;
+  font-size: 11px;
+}

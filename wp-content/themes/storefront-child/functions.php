@@ -123,6 +123,26 @@ unset($states['US'][$no_state]);
 return $states;
 }
 
+// Customize checkout
+add_filter( 'woocommerce_gateway_icon', 'remove_what_is_paypal', 10, 2 );
+function remove_what_is_paypal( $icon_html, $gateway_id ) {
+	if( 'paypal' == $gateway_id ) {
+		$icon_html = '<img src="/wp-content/themes/storefront-child/assets/images/PayPal-1.jpg">';
+	}
+
+	return $icon_html;
+}
+
+add_filter( 'gettext', 'custom_paypal_button_text', 20, 3 );
+function custom_paypal_button_text( $translated_text, $text, $domain ) {
+	switch ( $translated_text ) {
+		case 'Proceed to PayPal' :
+			$translated_text = __( 'Proceed to Payment', 'woocommerce' );
+			break;
+	}
+	return $translated_text;
+}
+
 // Footer Authorized Retailers Shortcode
 function auth_retailers_shortcode() { ob_start(); ?>
 

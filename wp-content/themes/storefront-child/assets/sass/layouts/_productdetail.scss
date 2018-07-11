@@ -32,3 +32,9 @@
 .product_title {
   text-align: left;
 }
+
+#billing_state_field::after {
+  content: "Please call for ordering from Alaska and Hawaii";
+  color: $color-primary;
+  font-size: 11px;
+}

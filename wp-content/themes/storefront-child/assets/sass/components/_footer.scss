@@ -19,6 +19,11 @@
   }
 }
 
+.footer-widgets.col-3 .block {
+  width: 50%;
+  margin-right: 0;
+}
+
 // Authorized Retailers
 .authorized-retailers {
   display: flex;
@@ -41,7 +46,6 @@
 
 // Menu and Contact Info
 .footer-widget-3 {
-  width: 50%;
   display: flex;
   justify-content: flex-end;
 

@@ -19,9 +19,38 @@
   }
 }
 
+.footer-widgets.col-3 .block {
+  width: 35%;
+}
+
+// Authorized Retailers
+.authorized-retailers {
+  display: flex;
+
+  img {
+    height: 115px;
+    padding-right: 30px;
+    width: 150px;
+  }
+}
+
+// Seals
 .footer-widget-2 {
+  display: none;
+
+  img {
+    height: 100px;
+  }
+}
+
+// Menu and Contact Info
+.footer-widget-3 {
   display: flex;
   justify-content: flex-end;
+
+  #text-5 {
+    width: 100px;
+  }
 
   #text-3 {
     p:first-of-type {
@@ -38,7 +67,7 @@
   }
 
   #nav_menu-3 {
-    margin-right: 15%;
+    margin-right: 10%;
   }
 }
 
@@ -53,19 +82,6 @@
 ul.menu li.current-menu-item>a {
   color: $color-primary;
 }
-
-
-// Authorized Retailers
-.authorized-retailers {
-  display: flex;
-
-  img {
-    height: 115px;
-    padding-right: 30px;
-    width: 150px;
-  }
-}
-
 
 // Utility Bar
 .footer-info {

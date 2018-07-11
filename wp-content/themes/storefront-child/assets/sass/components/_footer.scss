@@ -20,7 +20,6 @@
 }
 
 .footer-widgets.col-3 .block {
-  width: 40%;
   margin-right: 0;
 }
 
@@ -92,4 +91,8 @@ ul.menu li.current-menu-item>a {
   background: $color-tertiary;
   color: $color-white;
   padding: 10px 30px;
+}
+
+.footer-widgets.col-3 .block {
+  width: 45%;
 }

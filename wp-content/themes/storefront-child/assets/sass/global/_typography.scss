@@ -27,6 +27,7 @@ p {
 
 a {
   color: $color-black;
+  text-decoration: underline;
 
   &:hover {
     color: $color-tertiary;

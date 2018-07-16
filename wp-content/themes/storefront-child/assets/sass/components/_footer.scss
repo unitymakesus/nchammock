@@ -25,10 +25,14 @@
 
 // Authorized Retailers
 .authorized-retailers {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
   display: flex;
+  align-items: center;
 
   img {
-    height: 115px;
+    height: 100%;
     padding-right: 30px;
     width: 150px;
   }

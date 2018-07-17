@@ -35,6 +35,16 @@ function homepage_add_and_remove() {
 }
 add_action( 'init' , 'homepage_add_and_remove');
 
+
+// Change Featured Products #
+function custom_storefront_featured_product_per_page( $args ) {
+ $args['per_page'] = 9;
+ return $args;
+}
+
+add_filter('storefront_featured_products_shortcode_args','custom_storefront_featured_product_per_page' );
+
+
 // Customizing Site Logo
 function custom_logo_size() {
   add_theme_support('custom-logo', apply_filters( 'storefront_custom_logo_args', array(

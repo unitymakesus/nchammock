@@ -2,6 +2,13 @@
 class BeRocket_AAPF_compat_product_table {
     function __construct() {
         add_action( 'plugins_loaded', array( __CLASS__, 'plugins_loaded' ), 1 );
+        if(defined('DOING_AJAX') && DOING_AJAX && !empty($_POST['action']) && $_POST['action'] == 'wcpt_load_products') {
+            $table_id = filter_input( INPUT_POST, 'table_id', FILTER_SANITIZE_STRING );
+            $table_transient = get_transient( $table_id );
+            unset($table_transient['total_posts']);
+            unset($table_transient['total_filtered_posts']);
+            set_transient( $table_id, $table_transient, DAY_IN_SECONDS );
+        }
     }
     public static function plugins_loaded() {
         if( class_exists('WC_Product_Table_Plugin') 
@@ -23,7 +30,7 @@ class BeRocket_AAPF_compat_product_table {
         }
     }
     public static function not_ajax_functions() {
-        add_filter( 'wc_product_table_query_args', array( __CLASS__, 'woocommerce_shortcode_products_query' ), 10, 2 );
+        add_filter( 'wc_product_table_query_args', array( __CLASS__, 'woocommerce_shortcode_products_query' ), 100, 2 );
     }
     public static function woocommerce_shortcode_products_query( $query_vars, $table ) {
         $table_args = $table->args->get_args();
@@ -33,12 +40,13 @@ class BeRocket_AAPF_compat_product_table {
         if(defined('DOING_AJAX') && DOING_AJAX && !empty($_POST['action']) && $_POST['action'] == 'wcpt_load_products' && ! empty($_POST['filters'])) {
             $_GET['filters'] = $_POST['filters'];
         }
-        $query_vars = BeRocket_AAPF::woocommerce_shortcode_products_query($query_vars);
+        $BeRocket_AAPF = BeRocket_AAPF::getInstance();
+        $query_vars = $BeRocket_AAPF->woocommerce_filter_query_vars($query_vars);
         return $query_vars;
     }
     public static function aapf_localize_widget_script($localize) {
         $localize['products_holder_id'] .= ( empty($localize['products_holder_id']) ? '' : ', ' ) . '.berocket_product_table_compat';
-        $localize['user_func']['after_update'] = 'if( typeof(jQuery(".berocket_product_table_compat .wc-product-table").productTable) == "function" ) {jQuery(".berocket_product_table_compat .wc-product-table").productTable();}' . $localize['user_func']['after_update'];
+        $localize['user_func']['after_update'] = 'if( typeof(jQuery(".berocket_product_table_compat .wc-product-table").productTable) == "function" && ! jQuery(".berocket_product_table_compat > .dataTables_wrapper").length ) {jQuery(".berocket_product_table_compat .wc-product-table").productTable();}' . $localize['user_func']['after_update'];
         return $localize;
     }
 }

@@ -1,5 +1,8 @@
 *** WooCommerce Additional Variation Images Changelog ***
 
+2018-05-21 - version 1.7.13
+* Update - WC 3.4 compatibility.
+
 2018-03-01 - version 1.7.12
 * Fix - Fallback to main product image if there is no main image for the variation and no additional variation images.
 

@@ -2,8 +2,6 @@
 define('BEROCKETAAPF', 'BeRocket_AAPF_Widget');
 include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
-
-require_once dirname( __FILE__ ).'/functions.php';
 /**
  * BeRocket_AAPF_Widget - main filter widget. One filter for any needs
  */
@@ -26,7 +24,7 @@ class BeRocket_AAPF_Widget extends WP_Widget {
         'enable_slider_inputs'          => '',
         'parent_product_cat'            => '',
         'depth_count'                   => '0',
-        'widget_collapse_disable'        => '0',
+        'widget_collapse_enable'        => '0',
         'widget_is_hide'                => '0',
         'show_product_count_per_attr'   => '0',
         'hide_child_attributes'         => '0',
@@ -139,8 +137,6 @@ class BeRocket_AAPF_Widget extends WP_Widget {
             
             add_action( 'wp_ajax_nopriv_berocket_aapf_listener', array( __CLASS__, 'listener' ) );
             add_action( 'wp_ajax_berocket_aapf_listener', array( __CLASS__, 'listener' ) );
-            add_action( 'wp_ajax_nopriv_berocket_aapf_listener_pc', array( __CLASS__, 'listener_product_count' ) );
-            add_action( 'wp_ajax_berocket_aapf_listener_pc', array( __CLASS__, 'listener_product_count' ) );
             add_action( 'wp_ajax_berocket_aapf_color_listener', array( __CLASS__, 'color_listener' ) );
             add_action( 'wp_ajax_br_include_exclude_list', array( __CLASS__, 'ajax_include_exclude_list' ) );
         }
@@ -173,29 +169,14 @@ class BeRocket_AAPF_Widget extends WP_Widget {
                 'name' => __('Attribute', 'BeRocket_AJAX_domain'),
                 'sameas' => 'attribute',
             ),
-            '_stock_status' => array(
-                'name' => __('Stock status', 'BeRocket_AJAX_domain'),
-                'sameas' => '_stock_status',
-            ),
-            'product_cat' => array(
-                'name' => __('Product sub-categories', 'BeRocket_AJAX_domain'),
-                'sameas' => 'product_cat',
-            ),
             'tag' => array(
                 'name' => __('Tag', 'BeRocket_AJAX_domain'),
                 'sameas' => 'tag',
             ),
-            'custom_taxonomy' => array(
-                'name' => __('Custom Taxonomy', 'BeRocket_AJAX_domain'),
+            'all_product_cat' => array(
+                'name' => __('Product Category', 'BeRocket_AJAX_domain'),
                 'sameas' => 'custom_taxonomy',
-            ),
-            'date' => array(
-                'name' => __('Date', 'BeRocket_AJAX_domain'),
-                'sameas' => 'date',
-            ),
-            '_sale' => array(
-                'name' => __('Sale', 'BeRocket_AJAX_domain'),
-                'sameas' => '_sale',
+                'attribute' => 'product_cat',
             ),
         );
         if ( function_exists('wc_get_product_visibility_term_ids') ) {
@@ -205,6 +186,12 @@ class BeRocket_AAPF_Widget extends WP_Widget {
             );
         }
         $filter_type_array = apply_filters('berocket_filter_filter_type_array', $filter_type_array, $instance);
+        if( ! array_key_exists($instance['filter_type'], $filter_type_array) ) {
+            foreach($filter_type_array as $filter_type_key => $filter_type_val) {
+                $instance['filter_type'] = $filter_type_key;
+                break;
+            }
+        }
         if( ! empty($instance['filter_type']) && ! empty($filter_type_array[$instance['filter_type']]) && ! empty($filter_type_array[$instance['filter_type']]['sameas']) ) {
             $sameas = $filter_type_array[$instance['filter_type']];
             $instance['filter_type'] = $sameas['sameas'];
@@ -214,6 +201,72 @@ class BeRocket_AAPF_Widget extends WP_Widget {
                 } elseif( $sameas['sameas'] == 'attribute' ) {
                     $instance['attribute'] = $sameas['attribute'];
                 }
+            }
+        }
+        //CHECK WIDGET TYPES
+        $berocket_admin_filter_types = array(
+            'tag' => array('checkbox','radio','select','color','image','tag_cloud'),
+            'product_cat' => array('checkbox','radio','select','color','image'),
+            'sale' => array('checkbox','radio','select'),
+            'custom_taxonomy' => array('checkbox','radio','select','color','image'),
+            'attribute' => array('checkbox','radio','select','color','image'),
+            'price' => array('slider'),
+            'filter_by' => array('checkbox','radio','select','color','image'),
+        );
+        $berocket_admin_filter_types_by_attr = array(
+            'checkbox' => array('value' => 'checkbox', 'text' => 'Checkbox'),
+            'radio' => array('value' => 'radio', 'text' => 'Radio'),
+            'select' => array('value' => 'select', 'text' => 'Select'),
+            'color' => array('value' => 'color', 'text' => 'Color'),
+            'image' => array('value' => 'image', 'text' => 'Image'),
+            'slider' => array('value' => 'slider', 'text' => 'Slider'),
+            'tag_cloud' => array('value' => 'tag_cloud', 'text' => 'Tag cloud'),
+        );
+        list($berocket_admin_filter_types, $berocket_admin_filter_types_by_attr) = apply_filters( 'berocket_admin_filter_types_by_attr', array($berocket_admin_filter_types, $berocket_admin_filter_types_by_attr) );
+        $select_options_variants = array();
+        if ( $instance['filter_type'] == 'tag' ) {
+            $select_options_variants = $berocket_admin_filter_types['tag'];
+        } else if ( $instance['filter_type'] == 'product_cat' || ( $instance['filter_type'] == 'custom_taxonomy' && ( $instance['custom_taxonomy'] == 'product_tag' || $instance['custom_taxonomy'] == 'product_cat' ) ) ) {
+            $select_options_variants = $berocket_admin_filter_types['product_cat'];
+        } else if ( $instance['filter_type'] == '_sale' || $instance['filter_type'] == '_stock_status' || $instance['filter_type'] == '_rating' ) {
+            $select_options_variants = $berocket_admin_filter_types['sale'];
+        } else if ( $instance['filter_type'] == 'custom_taxonomy' ) {
+            $select_options_variants = $berocket_admin_filter_types['custom_taxonomy'];
+        } else if ( $instance['filter_type'] == 'attribute' ) {
+            if ( $instance['attribute'] == 'price' ) {
+                $select_options_variants = $berocket_admin_filter_types['price'];
+            } else {
+                $select_options_variants = $berocket_admin_filter_types['attribute'];
+            }
+        } else if ( $instance['filter_type'] == 'filter_by' ) {
+            $select_options_variants = $berocket_admin_filter_types['filter_by'];
+        }
+        $selected = false;
+        $first = false;
+        foreach($select_options_variants as $select_options_variant) {
+            if( ! empty($berocket_admin_filter_types_by_attr[$select_options_variant]) ) {
+                if( $instance['type'] == $berocket_admin_filter_types_by_attr[$select_options_variant]['value'] ) {
+                    $selected = true;
+                    break;
+                }
+                if( $first === false ) {
+                    $first = $berocket_admin_filter_types_by_attr[$select_options_variant]['value'];
+                }
+            }
+        }
+        if( ! $selected ) {
+            $instance['type'] = $first;
+        }
+        $widget_type_array = apply_filters( 'berocket_widget_widget_type_array', array(
+            'filter' => __('Filter', 'BeRocket_AJAX_domain'),
+            'update_button' => __('Update Products button', 'BeRocket_AJAX_domain'),
+            'reset_button' => __('Reset Products button', 'BeRocket_AJAX_domain'),
+            'selected_area' => __('Selected Filters area', 'BeRocket_AJAX_domain'),
+        ) );
+        if( ! array_key_exists($instance['widget_type'], $widget_type_array) ) {
+            foreach($widget_type_array as $widget_type_id => $widget_type_name) {
+                $instance['widget_type'] = $widget_type_id;
+                break;
             }
         }
         $instance['title'] = apply_filters( 'widget_title', empty($instance['title']) ? '' : $instance['title'], $instance );
@@ -240,45 +293,17 @@ class BeRocket_AAPF_Widget extends WP_Widget {
             $widget_error_log['instance'] = $instance;
         }
 
+        $BeRocket_AAPF = BeRocket_AAPF::getInstance();
         if( ! empty($br_options['user_func']) && is_array( $br_options['user_func'] ) ) {
-            $user_func = array_merge( BeRocket_AAPF::$defaults['user_func'], $br_options['user_func'] );
+            $user_func = array_merge( $BeRocket_AAPF->defaults['user_func'], $br_options['user_func'] );
         } else {
-            $user_func = BeRocket_AAPF::$defaults['user_func'];
+            $user_func = $BeRocket_AAPF->$defaults['user_func'];
         }
 
         if( ! empty($br_options['filters_turn_off']) ) return false;
 
         if( ! empty($instance['child_parent']) && in_array($instance['child_parent'], array('child', 'parent')) ) {
             $br_options['show_all_values'] = true;
-        }
-        if( !( $instance['filter_type'] == 'attribute'
-        && ( $instance['attribute'] == 'price' || $instance['attribute'] == 'product_cat' ) )
-        || $instance['filter_type'] == 'product_cat'
-        || $instance['filter_type'] == '_stock_status'
-        || $instance['filter_type'] == 'tag'
-        || $instance['type'] == 'slider' ) {
-            if( ! empty($instance['child_parent']) && $instance['child_parent'] == 'depth' ) {
-                $count = ( empty($instance['child_onew_count']) ? '' : $instance['child_onew_count'] );
-                $title = ( empty($instance['title']) ? '' : $instance['title'] );
-                $instance['child_parent'] = 'parent';
-                $childs = ( empty($instance['child_onew_childs']) ? '' : $instance['child_onew_childs'] );
-                
-                $BeRocket_AAPF_Widget = new BeRocket_AAPF_Widget();
-                $BeRocket_AAPF_Widget->widget( $args, $instance );
-                $instance['child_parent'] = 'child';
-                for( $i = 1; $i <= $count; $i++ ) {
-                    $child = $childs[$i];
-                    $new_args = $args;
-                    $instance['child_parent_depth'] = $i;
-                    $instance['title'] = $childs[$i]['title'];
-                    $instance['child_parent_no_values'] = ( empty($childs[$i]['no_values']) ? '' : $childs[$i]['no_values'] );
-                    $instance['child_parent_previous'] = ( empty($childs[$i]['previous']) ? '' : $childs[$i]['previous'] );
-                    $instance['child_parent_no_products'] = ( empty($childs[$i]['no_product']) ? '' : $childs[$i]['no_product'] );
-                    $BeRocket_AAPF_Widget = new BeRocket_AAPF_Widget();
-                    $BeRocket_AAPF_Widget->widget( $new_args, $instance );
-                }
-                return false;
-            }
         }
 
         if ( ! empty($instance['show_page']) ) {
@@ -461,6 +486,8 @@ class BeRocket_AAPF_Widget extends WP_Widget {
             }
         }
 
+        if( apply_filters( 'berocket_aapf_widget_display_custom_filter', false, berocket_isset($widget_type), $instance, $args, $this ) ) return '';
+
         if ( ! empty($widget_type) && $widget_type == 'update_button' ) {
             set_query_var( 'title', apply_filters( 'berocket_aapf_widget_title', $title ) );
             set_query_var( 'uo', br_aapf_converter_styles( (empty($br_options['styles']) ? NULL : $br_options['styles']) ) );
@@ -534,94 +561,6 @@ class BeRocket_AAPF_Widget extends WP_Widget {
             return '';
         }
 
-        if ( ! empty($widget_type) && $widget_type == 'search_box' ) {
-            if( $search_box_link_type == 'shop_page' ) {
-                if( function_exists('wc_get_page_id') ) {
-                    $search_box_url = get_permalink( wc_get_page_id( 'shop' ) );
-                } else {
-                    $search_box_url = get_permalink( woocommerce_get_page_id( 'shop' ) );
-                }
-            } elseif( $search_box_link_type == 'category' ) {
-                $search_box_url = get_term_link( $search_box_category, 'product_cat' );
-            }
-            $sb_style = '';
-            if ( $search_box_style['position'] == 'horizontal' ) {
-                $sb_count = $search_box_count;
-                if( $search_box_style['search_position'] == 'before_after' ) {
-                    $sb_count += 2;
-                } else {
-                    $sb_count++;
-                }
-                $search_box_width = (int)(100 / $sb_count);
-                $sb_style .= 'width:'.$search_box_width.'%;display:inline-block;padding: 4px;';
-            }
-            echo $before_widget;
-            $search_box_button_class = 'search_box_button_class_'.rand();
-            $sbb_style = '';
-            if( ! empty($search_box_style['background']) ) {
-                $sbb_style .= 'background-color:'.($search_box_style['background'][0] == '#' ? $search_box_style['background'] : '#'.$search_box_style['background']).';';
-            }
-            $sbb_style .= 'opacity:'.$search_box_style['back_opacity'].';';
-            if( ! empty($title) ) { ?><h3 class="widget-title berocket_aapf_widget-title" style="<?php echo ( empty($uo['style']['title']) ? '' : $uo['style']['title'] ) ?>"><span><?php echo $title; ?></span></h3><?php }
-            echo '<div class="berocket_search_box_block">';
-            echo '<div class="berocket_search_box_background" style="'.$sbb_style.'"></div>';
-            echo '<div class="berocket_search_box_background_all">';
-            $sbb_style = '';
-            if( ! empty($search_box_style['button_background']) ) {
-                $sbb_style .= 'background-color:'.($search_box_style['button_background'][0] == '#' ? $search_box_style['button_background'] : '#'.$search_box_style['button_background']).';';
-            }
-            if( ! empty($search_box_style['text_color']) ) {
-                $sbb_style .= 'color:'.($search_box_style['text_color'][0] == '#' ? $search_box_style['text_color'] : '#'.$search_box_style['text_color']).';';
-            }
-            if( ! empty($search_box_style['button_background_over']) ) {
-                $sbb_style_hover = 'background-color:'.($search_box_style['button_background_over'][0] == '#' ? $search_box_style['button_background_over'] : '#'.$search_box_style['button_background_over']).';';
-            }
-            if( ! empty($search_box_style['text_color_over']) ) {
-                $sbb_style_hover .= 'color:'.($search_box_style['text_color_over'][0] == '#' ? $search_box_style['text_color_over'] : '#'.$search_box_style['text_color_over']).';';
-            }
-            if ( $search_box_style['search_position'] == 'before' || $search_box_style['search_position'] == 'before_after' ) {
-                echo '<div style="'.$sb_style.'"><a data-url="'.$search_box_url.'" class="'.$search_box_button_class.' berocket_search_box_button">'.$search_box_style['search_text'].'</a></div>';
-            }
-            for($i = 1; $i <= $search_box_count; $i++) {
-                echo '<div style="'.$sb_style.'">';
-                $current_box = $search_box_attributes[$i];
-                $widget_search = new BeRocket_AAPF_Widget();
-                $search_instance = self::$defaults;
-                $search_instance['filter_type'] = ( empty($current_box['type']) ? '' : $current_box['type'] );
-                $search_instance['attribute'] = ( empty($current_box['attribute']) ? '' : $current_box['attribute'] );
-                $search_instance['custom_taxonomy'] = ( empty($current_box['custom_taxonomy']) ? '' : $current_box['custom_taxonomy'] );
-                $search_instance['type'] = ( empty($current_box['visual_type']) ? '' : $current_box['visual_type'] );
-                $search_instance['height'] = ( empty($current_box['height']) ? '' : $current_box['height'] );
-                $search_instance['scroll_theme'] = ( empty($current_box['scroll_theme']) ? '' : $current_box['scroll_theme'] );
-                $search_instance['selected_area_show'] = ( empty($current_box['selected_area_show']) ? '' : $current_box['selected_area_show'] );
-                $search_instance['hide_selected_arrow'] = ( empty($current_box['hide_selected_arrow']) ? '' : $current_box['hide_selected_arrow'] );
-                $search_instance['selected_is_hide'] = ( empty($current_box['selected_is_hide']) ? '' : $current_box['selected_is_hide'] );
-                $search_instance['is_hide_mobile'] = ( empty($current_box['is_hide_mobile']) ? '' : $current_box['is_hide_mobile'] );
-                $search_instance['cat_propagation'] = ( empty($current_box['cat_propagation']) ? '' : $current_box['cat_propagation'] );
-                $search_instance['cat_propagation'] = ( empty($current_box['cat_propagation']) ? '' : $current_box['cat_propagation'] );
-                $search_instance['product_cat'] = ( empty($current_box['product_cat']) ? '' : $current_box['product_cat'] );
-                $search_instance['show_page'] = ( empty($current_box['show_page']) ? '' : $current_box['show_page'] );
-                $search_instance['cat_value_limit'] = ( empty($current_box['cat_value_limit']) ? '' : $current_box['cat_value_limit'] );
-                $search_instance['widget_id'] = $this->id;
-                $search_instance['widget_id_number'] = $this->number;
-
-                $widget_search->widget(array('before_widget' => '<h4>'.$current_box['title'].'</h4>', 'after_widget' =>''), $search_instance);
-                echo '</div>';
-            }
-            if ( $search_box_style['search_position'] == 'after' || $search_box_style['search_position'] == 'before_after' ) {
-                echo '<div style="'.$sb_style.'">
-                <a data-url="'.$search_box_url.'" 
-                class="'.$search_box_button_class.' berocket_search_box_button">
-                '.$search_box_style['search_text'].'</a></div>';
-            }
-            echo '</div></div>';
-            echo '<style>.'.$search_box_button_class.'{'.$sbb_style.'}.'.$search_box_button_class.':hover{'.$sbb_style_hover.'}</style>';
-            echo $after_widget;
-            return '';
-        } else {
-            unset($search_box_attributes, $search_box_style);
-        }
-
         $woocommerce_hide_out_of_stock_items = BeRocket_AAPF_Widget::woocommerce_hide_out_of_stock_items();
         if( $woocommerce_hide_out_of_stock_items == 'yes' && $filter_type == 'attribute' && $attribute == '_stock_status' ) {
             $widget_error_log['return'] = 'stock_status';
@@ -644,74 +583,139 @@ class BeRocket_AAPF_Widget extends WP_Widget {
         }
 
         $terms = $sort_terms = $price_range = array();
-        if ( $filter_type == 'attribute' ) {
-            if ( $type == 'ranges' ) {
-                if ( count( $ranges ) < 2 ) {
-                    $widget_error_log['ranges'] = $ranges;
-                    $widget_error_log['return'] = 'ranges < 2';
-                    BeRocket_AAPF::$error_log['6_widgets'][] = $widget_error_log;
-                    if ( isset ( $br_wc_query ) ) {
-                        if ( isset ( $old_query ) ) {
-                            $wp_the_query = $old_the_query;
-                            $wp_query = $old_query;
-                        }
-                        if( ! empty($wc_query) && is_a($wc_query, 'WP_Query') && class_exists('WC_Query') &&  method_exists('WC_Query', 'product_query') && method_exists('WC_Query', 'get_main_query') ) {
-                            wc()->query->product_query($wc_query);
-                        }
-                        wc()->query->remove_ordering_args();
-                    }
-                    return false;
-                }
-                $terms = array();
-                $ranges[0]--;
-                if( ! empty($hide_first_last_ranges) ) {
-                    $price_range = br_get_cache( 'price_range', $wp_check_product_cat, $br_options['object_cache'] );
-                    if ( $price_range === false ) {
-                        $price_range = BeRocket_AAPF_Widget::get_price_range( $wp_query_product_cat, $woocommerce_hide_out_of_stock_items );
-                        br_set_cache( 'price_range', $price_range, $wp_check_product_cat, BeRocket_AJAX_cache_expire, $br_options['object_cache'] );
-                    }
-                }
-                for ( $i = 1; $i < count( $ranges ); $i++ ) {
-                    $add_term_ranges = true;
-                    if( ! empty($hide_first_last_ranges) ) {
-                        if ( ! empty( $price_range ) and count( $price_range ) >= 2 ) {
-                            if( $price_range[0] >= $ranges[$i] ) {
-                                $add_term_ranges = false;
-                            }
-                            if( $price_range[1] <= $ranges[$i - 1] ) {
-                                $add_term_ranges = false;
-                            }
-                        }
-                    }
-                    if( $add_term_ranges ) {
-                        $t_id = ($ranges[$i - 1] + 1).'*'.$ranges[$i];
-                        $t_name = ( ! empty( $icon_before_value ) ? ( ( substr( $icon_before_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_before_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_before_value.'" alt=""></i>' ) : '' ).$text_before_price.(apply_filters( 'woocommerce_price_filter_widget_min_amount', $ranges[$i - 1]) + 1).$text_after_price.( ! empty( $icon_after_value ) ? ( ( substr( $icon_after_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_after_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_after_value.'" alt=""></i>' ) : '' ).
-                        ' - '.
-                        ( ! empty( $icon_before_value ) ? ( ( substr( $icon_before_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_before_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_before_value.'" alt=""></i>' ) : '' ).$text_before_price.apply_filters( 'woocommerce_price_filter_widget_max_amount', $ranges[$i]).$text_after_price.( ! empty( $icon_after_value ) ? ( ( substr( $icon_after_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_after_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_after_value.'" alt=""></i>' ) : '' );
-                        $term = array( 'term_id' => $t_id, 'slug' => $t_id, 'name' => $t_name, 'count' => 1, 'taxonomy' => $attribute );
-                        $term = (object)$term;
-                        if( ! empty($br_options['recount_products']) && ! empty($show_product_count_per_attr) ) {
-                            self::price_range_count($term, $ranges[$i - 1], $ranges[$i]);
-                        }
-                        $terms[] = $term;
-                    }
-                }
+        list($terms_error_return, $terms_ready, $terms, $type) = apply_filters( 'berocket_widget_attribute_type_terms', array(false, false, $terms, $type), $attribute, $filter_type, $instance );
+        
+        if( $terms_ready ) {
+            if( $terms_error_return === FALSE ) {
                 set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
                 if( BeRocket_AAPF::$debug_mode ) {
                     $widget_error_log['terms'] = $terms;
                 }
-            } elseif ( $attribute == 'price' ) {
-                if ( ! empty($price_values) ) {
-                    $price_range = explode( ",", $price_values );
-                } else {
-                    $price_range = br_get_cache( 'price_range', $wp_check_product_cat, $br_options['object_cache'] );
-                    if ( $price_range === false ) {
-                        $price_range = BeRocket_AAPF_Widget::get_price_range( $wp_query_product_cat, $woocommerce_hide_out_of_stock_items );
-                        br_set_cache( 'price_range', $price_range, $wp_check_product_cat, BeRocket_AJAX_cache_expire, $br_options['object_cache'] );
+            } else {
+                $widget_error_log['terms'] = $terms;
+                $widget_error_log['return'] = $terms_error_return;
+                BeRocket_AAPF::$error_log['6_widgets'][] = $widget_error_log;
+                if ( isset ( $br_wc_query ) ) {
+                    if ( isset ( $old_query ) ) {
+                        $wp_the_query = $old_the_query;
+                        $wp_query = $old_query;
                     }
-                    if ( ! $price_range or count( $price_range ) < 2 ) {
+                    if( ! empty($wc_query) && is_a($wc_query, 'WP_Query') && class_exists('WC_Query') &&  method_exists('WC_Query', 'product_query') && method_exists('WC_Query', 'get_main_query') ) {
+                        wc()->query->product_query($wc_query);
+                    }
+                    wc()->query->remove_ordering_args();
+                }
+                return false;
+            }
+        } else {
+            if ( $filter_type == 'attribute' ) {
+                if ( $attribute == 'price' ) {
+                    if ( ! empty($price_values) ) {
+                        $price_range = explode( ",", $price_values );
+                    } else {
+                        $price_range = br_get_cache( 'price_range', $wp_check_product_cat );
+                        if ( $price_range === false ) {
+                            $price_range = BeRocket_AAPF_Widget::get_price_range( $wp_query_product_cat, $woocommerce_hide_out_of_stock_items );
+                            br_set_cache( 'price_range', $price_range, $wp_check_product_cat, BeRocket_AJAX_cache_expire );
+                        }
+                        if ( ! $price_range or count( $price_range ) < 2 ) {
+                            $widget_error_log['price_range'] = $price_range;
+                            $widget_error_log['return'] = 'price_range < 2';
+                            BeRocket_AAPF::$error_log['6_widgets'][] = $widget_error_log;
+                            if ( isset ( $br_wc_query ) ) {
+                                if ( isset ( $old_query ) ) {
+                                    $wp_the_query = $old_the_query;
+                                    $wp_query = $old_query;
+                                }
+                                if( ! empty($wc_query) && is_a($wc_query, 'WP_Query') && class_exists('WC_Query') &&  method_exists('WC_Query', 'product_query') && method_exists('WC_Query', 'get_main_query') ) {
+                                    wc()->query->product_query($wc_query);
+                                }
+                                wc()->query->remove_ordering_args();
+                            }
+                            return false;
+                        }
+                    }
+                    if( BeRocket_AAPF::$debug_mode ) {
                         $widget_error_log['price_range'] = $price_range;
-                        $widget_error_log['return'] = 'price_range < 2';
+                    }
+                } elseif ( $attribute == '_rating' ) {
+                    $terms = array();
+                    $term = get_term_by('slug', 'rated-1', 'product_visibility');
+                    $term->name = ( $type == 'select' ? __('1 star', 'BeRocket_AJAX_domain') : __('<i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i>', 'BeRocket_AJAX_domain') );
+                    array_push($terms, $term);
+                    $term = get_term_by('slug', 'rated-2', 'product_visibility');
+                    $term->name = ( $type == 'select' ? __('2 stars', 'BeRocket_AJAX_domain') : __('<i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i>', 'BeRocket_AJAX_domain') );
+                    array_push($terms, $term);
+                    $term = get_term_by('slug', 'rated-3', 'product_visibility');
+                    $term->name = ( $type == 'select' ? __('3 stars', 'BeRocket_AJAX_domain') : __('<i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i>', 'BeRocket_AJAX_domain') );
+                    array_push($terms, $term);
+                    $term = get_term_by('slug', 'rated-4', 'product_visibility');
+                    $term->name = ( $type == 'select' ? __('4 stars', 'BeRocket_AJAX_domain') : __('<i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i>', 'BeRocket_AJAX_domain') );
+                    array_push($terms, $term);
+                    $term = get_term_by('slug', 'rated-5', 'product_visibility');
+                    $term->name = ( $type == 'select' ? __('5 stars', 'BeRocket_AJAX_domain') : __('<i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>', 'BeRocket_AJAX_domain') );
+                    array_push($terms, $term);
+                    $terms = BeRocket_AAPF_Widget::get_attribute_values( $attribute, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), $terms, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
+                    foreach($terms as &$term) {
+                        $term->taxonomy = '_rating';
+                    }
+                    if( ! empty( $order_values_type ) && $order_values_type == 'desc' ) {
+                        $terms = array_reverse($terms);
+                    }
+                    set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
+                    if( BeRocket_AAPF::$debug_mode ) {
+                        $widget_error_log['terms'] = $terms;
+                    }
+                } elseif ( $attribute == 'product_cat' ) {
+                    if( $parent_product_cat_current ) {
+                        $cate = get_queried_object();
+                        if( isset($cate->term_id) ) {
+                            $cateID = $cate->term_id;
+                            $title = str_replace( '%product_cat%', $cate->name, $title );
+                        } else {
+                            $cateID = 0;
+                            $title = str_replace( '%product_cat%', '', $title );
+                        }
+                        $parent_product_cat_cache = $cateID;
+                        $parent_product_cat = $cateID;
+                    } else {
+                        $parent_product_cat_cache = $parent_product_cat;
+                    }
+                    $terms = br_get_cache ( $attribute . $order_values_by, $wp_check_product_cat . $parent_product_cat_cache . $depth_count );
+                    if ( br_is_filtered() || $terms === false ) {
+                        $terms_unsort = self::get_product_categories( '', $parent_product_cat, array(), 0, $depth_count, true );
+                        self::sort_terms( $terms_unsort, array(
+                            "order_values_by" => $order_values_by,
+                            "attribute"       => $attribute,
+                            "order_values_type"=> (empty($order_values_type) || $order_values_type == 'asc' ? SORT_ASC : SORT_DESC)
+                        ) );
+
+                        $terms_unsort = self::set_terms_on_same_level( $terms_unsort, array(), ($type != 'checkbox' && $type != 'radio') );
+                        $terms = BeRocket_AAPF_Widget::get_attribute_values( $attribute, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), $terms_unsort, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
+                        if ( isset( $depth_count ) ) {
+                            $old_terms = $terms;
+                            $terms = array();
+
+                            foreach( $terms_unsort as $term_unsort ) {
+                                if ( ! empty( $old_terms[ $term_unsort->term_id ] ) ) {
+                                    $terms[ $term_unsort->term_id ] = $old_terms[ $term_unsort->term_id ];
+                                }
+                            }
+                        }
+
+                        if ( ! br_is_filtered() ) {
+                            br_set_cache( $attribute.$order_values_by, $terms, $wp_check_product_cat.$parent_product_cat_cache.$depth_count, BeRocket_AJAX_cache_expire );
+                        }
+                    }
+
+                    if( BeRocket_AAPF::$debug_mode ) {
+                        $widget_error_log['terms'] = $terms;
+                    }
+                    $terms = apply_filters('berocket_aapf_widget_include_exclude_items', $terms, $instance);
+
+                    if ( empty($terms) || ! is_array($terms) || count( $terms ) < 1 ) {
+                        $widget_error_log['terms'] = $terms;
+                        $widget_error_log['return'] = 'terms < 1';
                         BeRocket_AAPF::$error_log['6_widgets'][] = $widget_error_log;
                         if ( isset ( $br_wc_query ) ) {
                             if ( isset ( $old_query ) ) {
@@ -725,101 +729,86 @@ class BeRocket_AAPF_Widget extends WP_Widget {
                         }
                         return false;
                     }
-                }
-                if( BeRocket_AAPF::$debug_mode ) {
-                    $widget_error_log['price_range'] = $price_range;
-                }
-            } elseif ( $attribute == '_stock_status' ) {
-                array_push($terms, (object)array('term_id' => '1', 'name' => __('In stock', 'BeRocket_AJAX_domain'), 'slug' => 'instock', 'taxonomy' => '_stock_status', 'count' => 1));
-                array_push($terms, (object)array('term_id' => '2', 'name' => __('Out of stock', 'BeRocket_AJAX_domain'), 'slug' => 'outofstock', 'taxonomy' => '_stock_status', 'count' => 1));
-                $terms = BeRocket_AAPF_Widget::get_attribute_values( $attribute, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), $terms, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
-                set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
-                if( BeRocket_AAPF::$debug_mode ) {
-                    $widget_error_log['terms'] = $terms;
-                }
-            } elseif ( $attribute == '_sale' ) {
-                $terms = array();
-                array_push($terms, (object)array('term_id' => '1', 'name' => __('On sale', 'BeRocket_AJAX_domain'), 'slug' => 'sale', 'taxonomy' => '_sale', 'count' => 1));
-                array_push($terms, (object)array('term_id' => '2', 'name' => __('Not on sale', 'BeRocket_AJAX_domain'), 'slug' => 'notsale', 'taxonomy' => '_sale', 'count' => 1));
-                $terms = BeRocket_AAPF_Widget::get_attribute_values( $attribute, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), $terms, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
-                set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
-                if( BeRocket_AAPF::$debug_mode ) {
-                    $widget_error_log['terms'] = $terms;
-                }
-            } elseif ( $attribute == '_rating' ) {
-                $terms = array();
-                $term = get_term_by('slug', 'rated-1', 'product_visibility');
-                $term->name = ( $type == 'select' ? __('1 star', 'BeRocket_AJAX_domain') : __('<i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i>', 'BeRocket_AJAX_domain') );
-                array_push($terms, $term);
-                $term = get_term_by('slug', 'rated-2', 'product_visibility');
-                $term->name = ( $type == 'select' ? __('2 stars', 'BeRocket_AJAX_domain') : __('<i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i>', 'BeRocket_AJAX_domain') );
-                array_push($terms, $term);
-                $term = get_term_by('slug', 'rated-3', 'product_visibility');
-                $term->name = ( $type == 'select' ? __('3 stars', 'BeRocket_AJAX_domain') : __('<i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i>', 'BeRocket_AJAX_domain') );
-                array_push($terms, $term);
-                $term = get_term_by('slug', 'rated-4', 'product_visibility');
-                $term->name = ( $type == 'select' ? __('4 stars', 'BeRocket_AJAX_domain') : __('<i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i>', 'BeRocket_AJAX_domain') );
-                array_push($terms, $term);
-                $term = get_term_by('slug', 'rated-5', 'product_visibility');
-                $term->name = ( $type == 'select' ? __('5 stars', 'BeRocket_AJAX_domain') : __('<i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>', 'BeRocket_AJAX_domain') );
-                array_push($terms, $term);
-                $terms = BeRocket_AAPF_Widget::get_attribute_values( $attribute, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), $terms, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
-                foreach($terms as &$term) {
-                    $term->taxonomy = '_rating';
-                }
-                if( ! empty( $order_values_type ) && $order_values_type == 'desc' ) {
-                    $terms = array_reverse($terms);
-                }
-                set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
-                if( BeRocket_AAPF::$debug_mode ) {
-                    $widget_error_log['terms'] = $terms;
-                }
-            } elseif ( $attribute == 'product_cat' ) {
-                if( $parent_product_cat_current ) {
-                    $cate = get_queried_object();
-                    if( isset($cate->term_id) ) {
-                        $cateID = $cate->term_id;
-                        $title = str_replace( '%product_cat%', $cate->name, $title );
-                    } else {
-                        $cateID = 0;
-                        $title = str_replace( '%product_cat%', '', $title );
-                    }
-                    $parent_product_cat_cache = $cateID;
-                    $parent_product_cat = $cateID;
+                    set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
+                    unset( $terms, $terms_unsort );
                 } else {
-                    $parent_product_cat_cache = $parent_product_cat;
-                }
-                $terms = br_get_cache ( $attribute . $order_values_by, $wp_check_product_cat . $parent_product_cat_cache . $depth_count, $br_options['object_cache'] );
-                if ( br_is_filtered() || $terms === false ) {
-                    $terms_unsort = self::get_product_categories( '', $parent_product_cat, array(), 0, $depth_count, true );
-                    self::sort_terms( $terms_unsort, array(
-                        "order_values_by" => $order_values_by,
-                        "attribute"       => $attribute,
-                        "order_values_type"=> (empty($order_values_type) || $order_values_type == 'asc' ? SORT_ASC : SORT_DESC)
-                    ) );
+                    $sort_array  = array();
+                    $wc_order_by = wc_attribute_orderby( $attribute );
 
-                    $terms_unsort = self::set_terms_on_same_level( $terms_unsort, array(), ($type != 'checkbox' && $type != 'radio') );
-                    $terms = BeRocket_AAPF_Widget::get_attribute_values( $attribute, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), $terms_unsort, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
-                    if ( isset( $depth_count ) ) {
-                        $old_terms = $terms;
-                        $terms = array();
+                    $terms = br_get_cache ( $attribute, $wp_check_product_cat );
+                    if( br_is_filtered() || $terms === false || ( ! empty($child_parent) && ( $child_parent == 'parent' || $child_parent == 'child' ) ) ) {
+                        $current_terms = self::get_terms_child_parent ( ( empty($child_parent) ? '' : $child_parent ), $attribute, FALSE, ( isset($child_parent_depth) ? $child_parent_depth : null ) );
+                        $terms = BeRocket_AAPF_Widget::get_attribute_values( $attribute, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), $current_terms, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
+                        if( ! br_is_filtered() && ( empty($child_parent) || ( $child_parent != 'parent' && $child_parent != 'child' ) ) ) {
+                            br_set_cache ( $attribute, $terms, $wp_check_product_cat, BeRocket_AJAX_cache_expire );
+                        }
+                    }
+                    $terms = apply_filters('berocket_aapf_widget_include_exclude_items', $terms, $instance);
 
-                        foreach( $terms_unsort as $term_unsort ) {
-                            if ( ! empty( $old_terms[ $term_unsort->term_id ] ) ) {
-                                $terms[ $term_unsort->term_id ] = $old_terms[ $term_unsort->term_id ];
+                    if ( empty($terms) || ! is_array($terms) || count( $terms ) < 1 ) {
+                        $widget_error_log['terms'] = $terms;
+                        $widget_error_log['return'] = 'terms < 1';
+                        BeRocket_AAPF::$error_log['6_widgets'][] = $widget_error_log;
+                        if ( isset ( $br_wc_query ) ) {
+                            if ( isset ( $old_query ) ) {
+                                $wp_the_query = $old_the_query;
+                                $wp_query = $old_query;
+                            }
+                            if( ! empty($wc_query) && is_a($wc_query, 'WP_Query') && class_exists('WC_Query') &&  method_exists('WC_Query', 'product_query') && method_exists('WC_Query', 'get_main_query') ) {
+                                wc()->query->product_query($wc_query);
+                            }
+                            wc()->query->remove_ordering_args();
+                        }
+                        return false;
+                    }
+
+                    if ( $wc_order_by == 'menu_order' and $order_values_by == 'Default' ) {
+                        foreach ( $terms as $term ) {
+                            if( isset($term->term_id) ) {
+                                $sort_array[] = get_woocommerce_term_meta( $term->term_id, 'order_' . $attribute );
                             }
                         }
+                        array_multisort( $sort_array, $terms );
+                    } else {
+                        self::sort_terms( $terms, array(
+                            "wc_order_by"     => $wc_order_by,
+                            "order_values_by" => $order_values_by,
+                            "filter_type"     => $filter_type,
+                            "order_values_type"=> (empty($order_values_type) || $order_values_type == 'asc' ? SORT_ASC : SORT_DESC)
+                        ) );
                     }
 
-                    if ( ! br_is_filtered() ) {
-                        br_set_cache( $attribute.$order_values_by, $terms, $wp_check_product_cat.$parent_product_cat_cache.$depth_count, BeRocket_AJAX_cache_expire, $br_options['object_cache'] );
+                    if( BeRocket_AAPF::$debug_mode ) {
+                        $widget_error_log['terms'] = $terms;
+                    }
+                    set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
+                }
+
+            } elseif ( $filter_type == 'tag' ) {
+                $attribute = 'product_tag';
+                $terms = br_get_cache ( $attribute.$order_values_by, $wp_check_product_cat );
+                if( br_is_filtered() || $terms === false ) {
+                    $terms = BeRocket_AAPF_Widget::get_attribute_values( $attribute, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), FALSE, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
+
+                    if ( $order_values_by != 'Default' ) {
+                        self::sort_terms( $terms, array(
+                            "order_values_by" => $order_values_by,
+                            "attribute"       => $attribute,
+                            "order_values_type"=> (empty($order_values_type) || $order_values_type == 'asc' ? SORT_ASC : SORT_DESC)
+                        ) );
+                    }
+                    if( ! br_is_filtered() ) {
+                        br_set_cache ( $attribute.$order_values_by, $terms, $wp_check_product_cat, BeRocket_AJAX_cache_expire );
                     }
                 }
 
                 if( BeRocket_AAPF::$debug_mode ) {
                     $widget_error_log['terms'] = $terms;
                 }
-                $terms = self::include_exclude_items($terms, $include_exclude_select, $include_exclude_list);
+
+                $terms = apply_filters('berocket_aapf_widget_include_exclude_items', $terms, $instance);
+
+                set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
 
                 if ( empty($terms) || ! is_array($terms) || count( $terms ) < 1 ) {
                     $widget_error_log['terms'] = $terms;
@@ -837,24 +826,45 @@ class BeRocket_AAPF_Widget extends WP_Widget {
                     }
                     return false;
                 }
-                set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
-                unset( $terms, $terms_unsort );
-            } else {
-                $sort_array  = array();
-                $wc_order_by = wc_attribute_orderby( $attribute );
-
-                $terms = br_get_cache ( $attribute, $wp_check_product_cat, $br_options['object_cache'] );
+            } elseif ( $filter_type == 'custom_taxonomy' ) {
+                $terms = br_get_cache ( $custom_taxonomy.$order_values_by, $filter_type.$wp_check_product_cat );
                 if( br_is_filtered() || $terms === false || ( ! empty($child_parent) && ( $child_parent == 'parent' || $child_parent == 'child' ) ) ) {
-                    $current_terms = self::get_terms_child_parent ( ( empty($child_parent) ? '' : $child_parent ), $attribute, FALSE, ( isset($child_parent_depth) ? $child_parent_depth : null ) );
-                    $terms = BeRocket_AAPF_Widget::get_attribute_values( $attribute, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) or empty($br_options['show_all_values']) ), $current_terms, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
-                    if( ! br_is_filtered() && ( empty($child_parent) || ( $child_parent != 'parent' && $child_parent != 'child' ) ) ) {
-                        br_set_cache ( $attribute, $terms, $wp_check_product_cat, BeRocket_AJAX_cache_expire, $br_options['object_cache'] );
+                    if ( $custom_taxonomy == 'product_cat' ) {
+                        $terms_unsort = self::get_product_categories( '', 0, array(), 0, 50, true );
+                        $terms_unsort = self::get_terms_child_parent( $child_parent, $custom_taxonomy, $terms_unsort, ( isset($child_parent_depth) ? $child_parent_depth : 0 ) );
+
+
+                        if( ! br_is_filtered() && ( empty($child_parent) || ( $child_parent != 'parent' && $child_parent != 'child' ) ) ) {
+                            $terms_unsort = self::set_terms_on_same_level( $terms_unsort, array(), ($type != 'checkbox' && $type != 'radio') );
+                        }
+                        $terms = BeRocket_AAPF_Widget::get_attribute_values( $custom_taxonomy, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), $terms_unsort, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
+                    } else {
+                        $terms = self::get_terms_child_parent ( $child_parent, $custom_taxonomy, FALSE, ( isset($child_parent_depth) ? $child_parent_depth : 0 ) );
+                        $terms = BeRocket_AAPF_Widget::get_attribute_values( $custom_taxonomy, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), $terms, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
+                    }
+                    if ( $order_values_by != 'Default' || $custom_taxonomy == 'berocket_brand' ) {
+                        self::sort_terms( $terms, array(
+                            "order_values_by" => $order_values_by,
+                            "attribute"       => $custom_taxonomy,
+                            "order_values_type"=> (empty($order_values_type) || $order_values_type == 'asc' ? SORT_ASC : SORT_DESC)
+                        ) );
+                    }
+                    if ( ! br_is_filtered() && $child_parent != 'parent' && $child_parent != 'child' ) {
+                        br_set_cache( $custom_taxonomy . $order_values_by, $terms, $filter_type . $wp_check_product_cat, BeRocket_AJAX_cache_expire );
                     }
                 }
-                $terms = self::include_exclude_items($terms, $include_exclude_select, $include_exclude_list);
 
-                if ( empty($terms) || ! is_array($terms) || count( $terms ) < 1 ) {
+                if( BeRocket_AAPF::$debug_mode ) {
                     $widget_error_log['terms'] = $terms;
+                }
+                $terms = apply_filters('berocket_aapf_widget_include_exclude_items', $terms, $instance);
+
+                set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
+                $sort_array = self::sort_child_parent_hierarchy($terms);
+                @ array_multisort( $sort_array, (empty($order_values_type) || $order_values_type == 'asc' ? SORT_ASC : SORT_DESC), SORT_NUMERIC, $terms );
+
+                if ( ! isset($terms) || ! is_array($terms) || count( $terms ) < 1 ) {
+                    $widget_error_log['terms'] = ( isset($terms) ? $terms : '' );
                     $widget_error_log['return'] = 'terms < 1';
                     BeRocket_AAPF::$error_log['6_widgets'][] = $widget_error_log;
                     if ( isset ( $br_wc_query ) ) {
@@ -869,126 +879,7 @@ class BeRocket_AAPF_Widget extends WP_Widget {
                     }
                     return false;
                 }
-
-                if ( $wc_order_by == 'menu_order' and $order_values_by == 'Default' ) {
-                    foreach ( $terms as $term ) {
-                        if( isset($term->term_id) ) {
-                            $sort_array[] = get_woocommerce_term_meta( $term->term_id, 'order_' . $attribute );
-                        }
-                    }
-                    array_multisort( $sort_array, $terms );
-                } else {
-                    self::sort_terms( $terms, array(
-                        "wc_order_by"     => $wc_order_by,
-                        "order_values_by" => $order_values_by,
-                        "filter_type"     => $filter_type,
-                        "order_values_type"=> (empty($order_values_type) || $order_values_type == 'asc' ? SORT_ASC : SORT_DESC)
-                    ) );
-                }
-
-                if( BeRocket_AAPF::$debug_mode ) {
-                    $widget_error_log['terms'] = $terms;
-                }
-                set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
             }
-
-        } elseif ( $filter_type == 'tag' ) {
-            $attribute = 'product_tag';
-            $terms = br_get_cache ( $attribute.$order_values_by, $wp_check_product_cat, $br_options['object_cache'] );
-            if( br_is_filtered() || $terms === false ) {
-                $terms = BeRocket_AAPF_Widget::get_attribute_values( $attribute, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), FALSE, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
-
-                if ( $order_values_by != 'Default' ) {
-                    self::sort_terms( $terms, array(
-                        "order_values_by" => $order_values_by,
-                        "attribute"       => $attribute,
-                        "order_values_type"=> (empty($order_values_type) || $order_values_type == 'asc' ? SORT_ASC : SORT_DESC)
-                    ) );
-                }
-                if( ! br_is_filtered() ) {
-                    br_set_cache ( $attribute.$order_values_by, $terms, $wp_check_product_cat, BeRocket_AJAX_cache_expire, $br_options['object_cache'] );
-                }
-            }
-
-            if( BeRocket_AAPF::$debug_mode ) {
-                $widget_error_log['terms'] = $terms;
-            }
-
-            $terms = self::include_exclude_items($terms, $include_exclude_select, $include_exclude_list);
-
-            set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
-
-            if ( empty($terms) || ! is_array($terms) || count( $terms ) < 1 ) {
-                $widget_error_log['terms'] = $terms;
-                $widget_error_log['return'] = 'terms < 1';
-                BeRocket_AAPF::$error_log['6_widgets'][] = $widget_error_log;
-                if ( isset ( $br_wc_query ) ) {
-                    if ( isset ( $old_query ) ) {
-                        $wp_the_query = $old_the_query;
-                        $wp_query = $old_query;
-                    }
-                    if( ! empty($wc_query) && is_a($wc_query, 'WP_Query') && class_exists('WC_Query') &&  method_exists('WC_Query', 'product_query') && method_exists('WC_Query', 'get_main_query') ) {
-                        wc()->query->product_query($wc_query);
-                    }
-                    wc()->query->remove_ordering_args();
-                }
-                return false;
-            }
-        } elseif ( $filter_type == 'custom_taxonomy' ) {
-            $terms = br_get_cache ( $custom_taxonomy.$order_values_by, $filter_type.$wp_check_product_cat, $br_options['object_cache'] );
-            if( br_is_filtered() || $terms === false || ( ! empty($child_parent) && ( $child_parent == 'parent' || $child_parent == 'child' ) ) ) {
-                if ( $custom_taxonomy == 'product_cat' ) {
-                    $terms_unsort = self::get_product_categories( '', 0, array(), 0, 50, true );
-                    $terms_unsort = self::get_terms_child_parent( $child_parent, $custom_taxonomy, $terms_unsort, ( isset($child_parent_depth) ? $child_parent_depth : 0 ) );
-
-
-                    if( ! br_is_filtered() && ( empty($child_parent) || ( $child_parent != 'parent' && $child_parent != 'child' ) ) ) {
-                        $terms_unsort = self::set_terms_on_same_level( $terms_unsort, array(), ($type != 'checkbox' && $type != 'radio') );
-                    }
-                    $terms = BeRocket_AAPF_Widget::get_attribute_values( $custom_taxonomy, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), $terms_unsort, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
-                } else {
-                    $terms = self::get_terms_child_parent ( $child_parent, $custom_taxonomy, FALSE, ( isset($child_parent_depth) ? $child_parent_depth : 0 ) );
-                    $terms = BeRocket_AAPF_Widget::get_attribute_values( $custom_taxonomy, 'id', ( empty($br_options['show_all_values']) ), ( ! empty($br_options['recount_products']) ), $terms, ( isset($cat_value_limit) ? $cat_value_limit : null ), $operator );
-                }
-                if ( $order_values_by != 'Default' ) {
-                    self::sort_terms( $terms, array(
-                        "order_values_by" => $order_values_by,
-                        "attribute"       => $attribute,
-                        "order_values_type"=> (empty($order_values_type) || $order_values_type == 'asc' ? SORT_ASC : SORT_DESC)
-                    ) );
-                }
-                if ( ! br_is_filtered() && $child_parent != 'parent' && $child_parent != 'child' ) {
-                    br_set_cache( $custom_taxonomy . $order_values_by, $terms, $filter_type . $wp_check_product_cat, BeRocket_AJAX_cache_expire, $br_options['object_cache'] );
-                }
-            }
-
-            if( BeRocket_AAPF::$debug_mode ) {
-                $widget_error_log['terms'] = $terms;
-            }
-            $terms = self::include_exclude_items($terms, $include_exclude_select, $include_exclude_list);
-
-            set_query_var( 'terms', apply_filters( 'berocket_aapf_widget_terms', $terms ) );
-            $sort_array = self::sort_child_parent_hierarchy($terms);
-            @ array_multisort( $sort_array, (empty($order_values_type) || $order_values_type == 'asc' ? SORT_ASC : SORT_DESC), SORT_NUMERIC, $terms );
-
-            if ( ! isset($terms) || ! is_array($terms) || count( $terms ) < 1 ) {
-                $widget_error_log['terms'] = ( isset($terms) ? $terms : '' );
-                $widget_error_log['return'] = 'terms < 1';
-                BeRocket_AAPF::$error_log['6_widgets'][] = $widget_error_log;
-                if ( isset ( $br_wc_query ) ) {
-                    if ( isset ( $old_query ) ) {
-                        $wp_the_query = $old_the_query;
-                        $wp_query = $old_query;
-                    }
-                    if( ! empty($wc_query) && is_a($wc_query, 'WP_Query') && class_exists('WC_Query') &&  method_exists('WC_Query', 'product_query') && method_exists('WC_Query', 'get_main_query') ) {
-                        wc()->query->product_query($wc_query);
-                    }
-                    wc()->query->remove_ordering_args();
-                }
-                return false;
-            }
-        } elseif( $filter_type = 'date' ) {
-            $type = 'date';
         }
 
         $style = $class = '';
@@ -1027,8 +918,8 @@ class BeRocket_AAPF_Widget extends WP_Widget {
         set_query_var( 'filter_type', $filter_type );
         set_query_var( 'uo', br_aapf_converter_styles( (empty($br_options['styles']) ? '' : $br_options['styles']) ) );
         set_query_var( 'notuo', (empty($br_options['styles']) ? '' : $br_options['styles']) );
-        set_query_var( 'widget_is_hide', ! empty($widget_is_hide) );
-        set_query_var( 'widget_collapse_disable', ! empty($widget_collapse_disable) );
+        set_query_var( 'widget_is_hide', (! empty($widget_collapse_enable) && ! empty($widget_is_hide)) );
+        set_query_var( 'widget_collapse_disable', empty($widget_collapse_enable) );
         set_query_var( 'is_hide_mobile', ! empty($is_hide_mobile) );
         set_query_var( 'show_product_count_per_attr', ! empty($show_product_count_per_attr) );
         set_query_var( 'hide_child_attributes', ! empty($hide_child_attributes) );
@@ -1043,7 +934,7 @@ class BeRocket_AAPF_Widget extends WP_Widget {
         set_query_var( 'attribute_count_show_hide', berocket_isset($attribute_count_show_hide) );
         set_query_var( 'attribute_count', $attribute_count );
         set_query_var( 'description', (isset($description) ? $description : null) );
-        set_query_var( 'hide_collapse_arrow', ! empty($hide_collapse_arrow) );
+        set_query_var( 'hide_collapse_arrow', (empty($widget_collapse_enable) || ! empty($hide_collapse_arrow)) );
         set_query_var( 'values_per_row', (isset($values_per_row) ? $values_per_row : null) );
         set_query_var( 'child_parent', (isset($child_parent) ? $child_parent : null) );
         set_query_var( 'child_parent_depth', (isset($child_parent_depth) ? $child_parent_depth : null) );
@@ -1056,7 +947,6 @@ class BeRocket_AAPF_Widget extends WP_Widget {
         set_query_var( 'widget_id', ( $this->id ? $this->id : $widget_id ) );
         set_query_var( 'widget_id_number', ( $this->number ? $this->number : $widget_id_number ) );
         set_query_var( 'slug_urls', ! empty($br_options['slug_urls']) );
-        set_query_var( 'use_links_filters', ( ! empty($br_options['use_links_filters']) && ! empty($br_options['seo_friendly_urls']) ) );
 
         // widget title and start tag ( <ul> ) can be found in templates/widget_start.php
         echo $before_widget;
@@ -1305,7 +1195,7 @@ class BeRocket_AAPF_Widget extends WP_Widget {
             }
             set_query_var('select_multiple', ! empty($select_multiple));
         }
-        br_get_template_part( $type );
+        br_get_template_part( apply_filters('berocket_widget_load_template_name', $type, $instance) );
 
         do_action('berocket_aapf_widget_before_end');
         br_get_template_part('widget_end');
@@ -1326,29 +1216,6 @@ class BeRocket_AAPF_Widget extends WP_Widget {
             }
             wc()->query->remove_ordering_args();
         }
-    }
-
-    public static function include_exclude_items($terms, $include_exclude_select, $include_exclude_list) {
-        if ( isset($terms) && is_array($terms) && count( $terms ) > 0 ) {
-            if( $include_exclude_select == 'include' ) {
-                $new_terms = array();
-                foreach($terms as $term) {
-                    if( in_array($term->term_id, $include_exclude_list) ) {
-                        $new_terms[] = $term;
-                    }
-                }
-                $terms = $new_terms;
-            } elseif( $include_exclude_select == 'exclude' ) {
-                $new_terms = array();
-                foreach($terms as $term) {
-                    if( ! in_array($term->term_id, $include_exclude_list) ) {
-                        $new_terms[] = $term;
-                    }
-                }
-                $terms = $new_terms;
-            }
-        }
-        return $terms;
     }
 
     public static function woocommerce_hide_out_of_stock_items(){
@@ -1827,7 +1694,7 @@ if( BeRocket_AAPF::$debug_mode ) {
                 $cache_name .= '_'.$queried_object;
             }
 
-            $cache_result = br_get_cache( $cache_name, 'get_attribute_values_hide_empty', $br_options['object_cache'] );
+            $cache_result = br_get_cache( $cache_name, 'get_attribute_values_hide_empty' );
 
             if ( $cache_result === false || ! isset( $cache_result['terms'] ) || ! isset( $cache_result['term_count'] ) ) {
                 if ( class_exists('WP_Meta_Query') && class_exists('WP_Tax_Query') ) {
@@ -2005,7 +1872,7 @@ if( BeRocket_AAPF::$debug_mode ) {
                     }
 
                     $cache_result = array('terms' => $terms, 'term_count' => $term_count, 'results_pid' => $results_pid);
-                    br_set_cache ( $cache_name, $cache_result, 'get_attribute_values_hide_empty', BeRocket_AJAX_cache_expire, $br_options['object_cache'] );
+                    br_set_cache ( $cache_name, $cache_result, 'get_attribute_values_hide_empty', BeRocket_AJAX_cache_expire );
                 } else {
                     $terms                 = array();
                     $q_args                = $wp_query->query_vars;
@@ -2039,7 +1906,7 @@ if( BeRocket_AAPF::$debug_mode ) {
                         }
                     }
                     $cache_result = array('terms' => $terms, 'term_count' => $term_count);
-                    br_set_cache ( $cache_name, $cache_result, 'get_attribute_values_hide_empty', BeRocket_AJAX_cache_expire, $br_options['object_cache'] );
+                    br_set_cache ( $cache_name, $cache_result, 'get_attribute_values_hide_empty', BeRocket_AJAX_cache_expire );
                 }
             } else {
                 $terms = $cache_result['terms'];
@@ -2397,6 +2264,33 @@ if( BeRocket_AAPF::$debug_mode ) {
                     }
                 }
             }
+            $input_terms = self::set_terms_on_same_level($input_terms);
+            if( $input_terms !== FALSE && is_array($input_terms) && is_array($re) ) {
+                $re2 = array();
+                $is_child = false;
+                foreach($re as $re_id => $re_term) {
+                    $remove = true;
+                    foreach($input_terms as $input_term) {
+                        if( ! $is_child && $input_term->term_id == 'R__term_id__R' ) {
+                            $re2[0] = $input_term;
+                            $is_child = true;
+                        }
+                        if( $input_term->term_id == $re_term->term_id ) {
+                            $remove = false;
+                            if( $is_child ) {
+                                $re2[$re_id] = $re_term;
+                            }
+                            break;
+                        }
+                    }
+                    if( $remove ) {
+                        unset($re[$re_id]);
+                    }
+                }
+                if( $is_child ) {
+                    $re = $re2;
+                }
+            }
             /*
             if ( isset( $input_terms ) && $input_terms !== FALSE ) {
                 $re = $input_terms; //FIXME: kills subcategories in taxonomy->product_cat
@@ -2520,7 +2414,7 @@ if( BeRocket_AAPF::$debug_mode ) {
     public static function sort_terms( &$terms, $sort_data ) {
         $sort_array = array();
         if ( ! empty($terms) && is_array( $terms ) && count( $terms ) ) {
-            if ( ! empty($sort_data['attribute']) and $sort_data['attribute'] == 'product_cat' and ! empty($sort_data['order_values_by']) and $sort_data['order_values_by'] == 'Default' ) {
+            if ( ! empty($sort_data['attribute']) and in_array($sort_data['attribute'], array('product_cat', 'berocket_brand')) and ! empty($sort_data['order_values_by']) and $sort_data['order_values_by'] == 'Default' ) {
                 foreach ( $terms as $term ) {
                     $element_of_sort = get_woocommerce_term_meta(  $term->term_id,  'order',  true );
                     if( is_array($element_of_sort) || $element_of_sort === false ) {
@@ -2615,6 +2509,7 @@ if( BeRocket_AAPF::$debug_mode ) {
     }
 
     public static function get_filter_products( $wp_query_product_cat, $woocommerce_hide_out_of_stock_items, $use_filters = true ) {
+        $BeRocket_AAPF = BeRocket_AAPF::getInstance();
         global $wp_query, $wp_rewrite;
         $_POST['product_cat'] = $wp_query_product_cat;
 
@@ -2624,16 +2519,16 @@ if( BeRocket_AAPF::$debug_mode ) {
 
         $args = apply_filters( 'berocket_aapf_listener_wp_query_args', array() );
         $tags = (isset($args['product_tag']) ? $args['product_tag'] : null);
-        $meta_query = BeRocket_AAPF::remove_out_of_stock( array() , true, $woocommerce_hide_out_of_stock_items != 'yes' );
+        $meta_query = $BeRocket_AAPF->remove_out_of_stock( array() , true, $woocommerce_hide_out_of_stock_items != 'yes' );
         $args['post__in'] = array();
 
         if( $woocommerce_hide_out_of_stock_items == 'yes' ) {
-            $args['post__in'] = BeRocket_AAPF::remove_out_of_stock( $args['post__in'] );
+            $args['post__in'] = $BeRocket_AAPF->remove_out_of_stock( $args['post__in'] );
         }
         if ( $use_filters ) {
-            $args['post__in'] = BeRocket_AAPF::limits_filter( $args['post__in'] );
-            $args['post__in'] = BeRocket_AAPF::price_filter( $args['post__in'] );
-            $args['post__in'] = BeRocket_AAPF::add_terms( $args['post__in'] );
+            $args['post__in'] = $BeRocket_AAPF->limits_filter( $args['post__in'] );
+            $args['post__in'] = $BeRocket_AAPF->price_filter( $args['post__in'] );
+            $args['post__in'] = $BeRocket_AAPF->add_terms( $args['post__in'] );
         } else {
             $args = array( 'posts_per_page' => -1 );
             if ( ! empty($_POST['product_cat']) and $_POST['product_cat'] != '-1' ) {
@@ -2739,160 +2634,7 @@ if( BeRocket_AAPF::$debug_mode ) {
      * @return array - new merged instance
      */
     function update( $new_instance, $old_instance ) {
-        $instance = $old_instance;
-
-        /* Strip tags (if needed) and update the widget settings. */
-        $instance['widget_type']                = strip_tags( $new_instance['widget_type'] );
-        $instance['title']                      = strip_tags( $new_instance['title'] );
-        $instance['attribute']                  = strip_tags( $new_instance['attribute'] );
-        $instance['type']                       = strip_tags( $new_instance['type'] );
-        $instance['scroll_theme']               = strip_tags( $new_instance['scroll_theme'] );
-        $instance['css_class']                  = strip_tags( $new_instance['css_class'] );
-        $instance['text_before_price']          = strip_tags( $new_instance['text_before_price'] );
-        $instance['text_after_price']           = strip_tags( $new_instance['text_after_price'] );
-        $instance['enable_slider_inputs']       = strip_tags( ! empty($new_instance['enable_slider_inputs']) );
-        $instance['filter_type']                = strip_tags( $new_instance['filter_type'] );
-        $instance['custom_taxonomy']            = strip_tags( $new_instance['custom_taxonomy'] );
-        $instance['description']                = strip_tags( $new_instance['description'] );
-        $instance['parent_product_cat']         = strip_tags( $new_instance['parent_product_cat'] );
-        $instance['order_values_by']            = strip_tags( $new_instance['order_values_by'] );
-        $instance['show_page']                  = ( empty($new_instance['show_page']) ? array() : $new_instance['show_page'] );
-        $instance['cat_value_limit']            = $new_instance['cat_value_limit'];
-        $instance['child_parent']               = $new_instance['child_parent'];
-        $instance['child_onew_childs']          = $new_instance['child_onew_childs'];
-        $instance['child_parent_previous']      = $new_instance['child_parent_previous'];
-        $instance['child_parent_no_values']     = $new_instance['child_parent_no_values'];
-        $instance['child_parent_no_products']   = $new_instance['child_parent_no_products'];
-        $instance['search_box_count']           = $new_instance['search_box_count'];
-        $instance['search_box_attributes']      = $new_instance['search_box_attributes'];
-        $instance['search_box_url']             = $new_instance['search_box_url'];
-        $instance['search_box_category']        = $new_instance['search_box_category'];
-        $instance['search_box_link_type']       = $new_instance['search_box_link_type'];
-        $instance['search_box_style']           = $new_instance['search_box_style'];
-        $instance['slider_default']             = ! empty($new_instance['slider_default']);
-        $instance['number_style']               = ! empty($new_instance['number_style']);
-        $instance['number_style_thousand_separate'] = $new_instance['number_style_thousand_separate'];
-        $instance['number_style_decimal_separate'] = $new_instance['number_style_decimal_separate'];
-        $instance['number_style_decimal_number']= $new_instance['number_style_decimal_number'];
-        $instance['attribute_count']            = $new_instance['attribute_count'];
-        $instance['icon_after_title']           = $new_instance['icon_after_title'];
-        $instance['icon_before_title']          = $new_instance['icon_before_title'];
-        $instance['icon_after_value']           = $new_instance['icon_after_value'];
-        $instance['icon_before_value']          = $new_instance['icon_before_value'];
-        $instance['hide_first_last_ranges']     = ! empty($new_instance['hide_first_last_ranges']);
-        $instance['parent_product_cat_current'] = ! empty($new_instance['parent_product_cat_current']);
-        $instance['user_can_see']               = $new_instance['user_can_see'];
-        $instance['include_exclude_select']     = $new_instance['include_exclude_select'];
-        $instance['include_exclude_list']       = ( empty($new_instance['include_exclude_list']) ? array() : $new_instance['include_exclude_list'] );
-        if( ! is_array($instance['include_exclude_list']) ) {
-            $instance['include_exclude_list'] = array();
-        }
-        $instance['cat_propagation']            = ! empty($new_instance['cat_propagation']);
-        $instance['widget_is_hide']             = ! empty($new_instance['widget_is_hide']);
-        $instance['is_hide_mobile']             = ! empty($new_instance['is_hide_mobile']);
-        $instance['hide_collapse_arrow']        = ! empty($new_instance['hide_collapse_arrow']);
-        $instance['selected_area_show']         = ! empty($new_instance['selected_area_show']);
-        $instance['selected_is_hide']           = ! empty($new_instance['selected_is_hide']);
-        $instance['hide_selected_arrow']        = ! empty($new_instance['hide_selected_arrow']);
-        $instance['child_parent_depth']         = (int) $new_instance['child_parent_depth'];
-        $instance['child_onew_count']           = (int) $new_instance['child_onew_count'];
-        
-        $instance['product_cat']                = ( isset($new_instance['product_cat']) ) ? json_encode( $new_instance['product_cat'] ) : '';
-        if ( ! $instance['child_parent_depth'] || $instance['child_parent_depth'] < 1 ) {
-            $instance['child_parent_depth'] = 1;
-        }
-        if( $instance['type'] == 'slider' or $instance['type'] == 'tag_cloud' or ( $instance['filter_type'] == '_stock_status' and $instance['widget_type'] == 'filter' ) or ( $instance['filter_type'] == 'tag' and $instance['widget_type'] == 'filter' ) or ( $instance['filter_type'] == 'product_cat' and $instance['widget_type'] == 'filter' ) ) {
-            $instance['child_parent'] = '';
-        }
-
-        if ( $instance['type'] == 'slider' or $instance['type'] == 'select' or $instance['type'] == 'tag_cloud' ) {
-            $instance['values_per_row']  = 1;
-        } else {
-            $instance['values_per_row']  = $new_instance['values_per_row'];
-        }
-
-        if( $new_instance['height'] != 'auto' ) $new_instance['height'] = (float) $new_instance['height'];
-        if( !$new_instance['height'] ) $new_instance['height'] = 'auto';
-        $instance['height'] = $new_instance['height'];
-
-        if( $new_instance['operator'] != 'OR' ) $new_instance['operator'] = 'AND';
-        $instance['operator'] = $new_instance['operator'];
-
-        if ( $instance['filter_type'] == 'tag' and $instance['type'] == 'tag_cloud' ) {
-            $instance['tag_cloud_height']     = (int) $new_instance['tag_cloud_height'];
-            $instance['tag_cloud_min_font']   = (int) $new_instance['tag_cloud_min_font'];
-            $instance['tag_cloud_max_font']   = (int) $new_instance['tag_cloud_max_font'];
-            $instance['tag_cloud_tags_count'] = (int) $new_instance['tag_cloud_tags_count'];
-            $instance['tag_cloud_type']       = $new_instance['tag_cloud_type'];
-        }
-        if ( $instance['type'] != 'slider' or $instance['type'] != 'tag_cloud' ) {
-            $instance['show_product_count_per_attr'] = ! empty($new_instance['show_product_count_per_attr']);
-        }
-        if ( $instance['type'] != 'slider' or $instance['type'] != 'tag_cloud' or $instance['type'] != 'select' ) {
-            $instance['hide_child_attributes'] = ! empty($new_instance['hide_child_attributes']);
-        }
-        if ( $instance['filter_type'] == 'product_cat' ) {
-            $instance['depth_count'] = (int) $new_instance['depth_count'];
-            if( $instance['depth_count'] < 0 )
-                $instance['depth_count'] = 0;
-        }
-        if ( $instance['filter_type'] == 'attribute' and $instance['attribute'] == 'price' ) {
-            $instance['use_min_price'] = ! empty($new_instance['use_min_price']);
-            if((int) $new_instance['min_price'] >= 0) {
-                $instance['min_price'] = (int) $new_instance['min_price'];
-            } else {
-                $instance['min_price'] = 0;
-            }
-            $instance['use_max_price'] = ! empty($new_instance['use_max_price']);
-            if((int) $new_instance['max_price'] >= 1) {
-                $instance['max_price'] = (int) $new_instance['max_price'];
-            } else {
-                $instance['max_price'] = 1;
-            }
-        }
-
-        if( ( $instance['filter_type'] == 'attribute' or $instance['filter_type'] == 'custom_taxonomy' or $instance['filter_type'] == 'tag' or $instance['filter_type'] == 'product_cat' ) and ( $instance['type'] == 'color' or $instance['type'] == 'image' ) ) {
-            $instance['use_value_with_color'] = ! empty($new_instance['use_value_with_color']);
-            if( $instance['filter_type'] == 'tag' ) {
-                $_POST['tax_color_name']          = 'product_tag';
-            } elseif( $instance['filter_type'] == 'product_cat' ) {
-                $_POST['tax_color_name']          = 'product_cat';
-            } else {
-                $_POST['tax_color_name']          = $instance['attribute'];
-            }
-            $_POST['type']                    = $instance['type'];
-            $_POST['tax_color_set']           = $_POST['br_widget_color'];
-            BeRocket_AAPF_Widget::color_listener();
-        }
-
-        $instance['price_values'] = '';
-        if ( $price_values = trim( $new_instance['price_values'] ) ) {
-            $price_values = explode( ",", $price_values );
-
-            foreach ( $price_values as $price_value ) {
-                $instance['price_values'][] = (float) trim( $price_value );
-            }
-
-            $instance['price_values'] = array_unique( $instance['price_values'] );
-            sort( $instance['price_values'], SORT_NUMERIC );
-
-            $instance['price_values'] = implode( ",", $instance['price_values'] );
-        }
-
-        $instance['ranges'] = array();
-        if ( isset( $new_instance['ranges'] ) && is_array( $new_instance['ranges'] ) ) {
-            foreach ( $new_instance['ranges'] as $range ) {
-                $range = (int) $range;
-                if ( $range < 1 ) {
-                    $range = 1;
-                } 
-                $instance['ranges'][] = $range;
-            }
-        }
-
-        do_action( 'berocket_aapf_admin_update', $instance, $new_instance, $old_instance );
-
-        return apply_filters( 'berocket_aapf_admin_update_instance', $instance );
+        return $old_instance;
     }
 
     /**
@@ -2903,7 +2645,8 @@ if( BeRocket_AAPF::$debug_mode ) {
      * @return string|void
      */
     function form( $instance ) {
-        BeRocket_AAPF::register_admin_scripts();
+        $BeRocket_AAPF = BeRocket_AAPF::getInstance();
+        $BeRocket_AAPF->register_admin_scripts();
         wp_enqueue_script( 'berocket_aapf_widget-admin-colorpicker', plugins_url( '../js/colpick.js', __FILE__ ), array( 'jquery' ), BeRocket_AJAX_filters_version );
         wp_enqueue_script( 'berocket_aapf_widget-admin-script', plugins_url('../js/admin.js', __FILE__), array('jquery'), BeRocket_AJAX_filters_version );
 
@@ -2944,7 +2687,7 @@ if( BeRocket_AAPF::$debug_mode ) {
             wc()->query->product_query($wp_query);
         }
 
-        if( empty($br_options['ajax_request_load']) ) {
+        if( ! empty($br_options['alternative_load']) && $br_options['alternative_load_type'] == 'wpajax' ) {
             ob_start();
 
             $is_have_post = $wp_query->have_posts();
@@ -3019,7 +2762,7 @@ if( BeRocket_AAPF::$debug_mode ) {
         die();
     }
 
-    public function remove_pid( $terms ) {
+    public static function remove_pid( $terms ) {
 
         foreach ( $terms as &$term ) {
             if ( isset( $term ) ) {
@@ -3038,22 +2781,6 @@ if( BeRocket_AAPF::$debug_mode ) {
             }
         }
         return $terms;
-    }
-
-    /**
-     * Widget ajax listener
-     */
-    public static function listener_product_count(){
-        global $wp_query, $wp_rewrite;
-        $br_options = apply_filters( 'berocket_aapf_listener_br_options', BeRocket_AAPF::get_aapf_option() );
-
-        $wp_query = self::listener_wp_query();
-
-        $product_count = $wp_query->found_posts;
-        
-        echo json_encode( array( 'product_count' => $product_count ) );
-
-        die();
     }
 
     public static function listener_wp_query() {
@@ -3078,6 +2805,7 @@ if( BeRocket_AAPF::$debug_mode ) {
                 }
             }
         }
+        $BeRocket_AAPF = BeRocket_AAPF::getInstance();
         if ( ! empty($_POST['terms']) && is_array($_POST['terms']) ) {
             $stop_sale = false;
             $check_sale = $check_notsale = 0;
@@ -3120,7 +2848,7 @@ if( BeRocket_AAPF::$debug_mode ) {
                 if ( $check_sale ) {
                     $add_to_args['post__in'] = array_merge( array( 0 ), wc_get_product_ids_on_sale() );
                 } elseif( $check_notsale ) {
-                    $add_to_args['post__in'] = array_merge( array( 0 ), BeRocket_AAPF::wc_get_product_ids_not_on_sale() );
+                    $add_to_args['post__in'] = array_merge( array( 0 ), $BeRocket_AAPF->wc_get_product_ids_not_on_sale() );
                 }
             }
         }
@@ -3130,30 +2858,30 @@ if( BeRocket_AAPF::$debug_mode ) {
 
         $woocommerce_hide_out_of_stock_items = BeRocket_AAPF_Widget::woocommerce_hide_out_of_stock_items();
 
-        $meta_query = BeRocket_AAPF::remove_out_of_stock( array() , true, $woocommerce_hide_out_of_stock_items != 'yes' );
+        $meta_query = $BeRocket_AAPF->remove_out_of_stock( array() , true, $woocommerce_hide_out_of_stock_items != 'yes' );
 
         $args = apply_filters( 'berocket_aapf_listener_wp_query_args', array() );
         foreach($add_to_args as $arg_name => $add_arg) {
             $args[$arg_name] = $add_arg;
         }
         if( empty($br_options['slider_compatibility']) && ! empty($_POST['limits']) ) {
-            $args['tax_query'] = apply_filters('berocket_aapf_convert_limits_to_tax_query', $args['tax_query'], $_POST['limits']);
+            $args = apply_filters('berocket_aapf_convert_limits_to_tax_query', $args, $_POST['limits']);
         }
         if( ! isset($args['post__in']) ) {
             $args['post__in'] = array();
         }
         if( $woocommerce_hide_out_of_stock_items == 'yes' ) {
-            $args['post__in'] = BeRocket_AAPF::remove_out_of_stock( $args['post__in'] );
+            $args['post__in'] = $BeRocket_AAPF->remove_out_of_stock( $args['post__in'] );
         }
         if( ! br_woocommerce_version_check() ) {
-            $args['post__in'] = BeRocket_AAPF::remove_hidden( $args['post__in'] );
+            $args['post__in'] = $BeRocket_AAPF->remove_hidden( $args['post__in'] );
         }
         $args['meta_query'] = $meta_query;
 
         if( empty($br_options['slider_compatibility']) && ! empty($_POST['limits']) ) {
-            $args = BeRocket_AAPF::convert_limits_to_tax_query($args, $_POST['limits']);
+            $args = apply_filters('berocket_aapf_convert_limits_to_tax_query', $args, $_POST['limits']);
         } else {
-            $args['post__in']       = BeRocket_AAPF::limits_filter( $args['post__in'] );
+            $args['post__in']       = $BeRocket_AAPF->limits_filter( $args['post__in'] );
         }
         if( isset($_POST['price']) && is_array($_POST['price']) ) {
             $_POST['price'] = apply_filters('berocket_min_max_filter', $_POST['price']);
@@ -3181,7 +2909,7 @@ if( BeRocket_AAPF::$debug_mode ) {
                 'price_filter' => true,
             );
         } else {
-            $args['post__in']       = BeRocket_AAPF::price_filter( $args['post__in'] );
+            $args['post__in']       = $BeRocket_AAPF->price_filter( $args['post__in'] );
         }
         $args['post_status']    = 'publish';
         if ( is_user_logged_in() ) {
@@ -3226,6 +2954,7 @@ if( BeRocket_AAPF::$debug_mode ) {
 
         // here we get max products to know if current page is not too big
         $is_using_permalinks = $wp_rewrite->using_permalinks();
+        $_POST['location'] = (empty($_POST['location']) ? $_GET['location'] : $_POST['location']);
         if ( $is_using_permalinks and preg_match( "~/page/([0-9]+)~", $_POST['location'], $mathces ) or preg_match( "~paged?=([0-9]+)~", $_POST['location'], $mathces ) ) {
             $args['paged'] = min( $mathces[1], $wp_query->max_num_pages );
             
@@ -3278,7 +3007,7 @@ if( BeRocket_AAPF::$debug_mode ) {
     public static function end_clean() {
         global $wp_query, $wp_rewrite;
         $br_options = apply_filters( 'berocket_aapf_listener_br_options', BeRocket_AAPF::get_aapf_option() );
-        if ( $br_options['ajax_request_load_style'] != 'js' ) {
+        if ( $br_options['alternative_load_type'] != 'js' ) {
             $_RESPONSE['products'] = explode('||EXPLODE||', ob_get_contents());
             $_RESPONSE['products'] = $_RESPONSE['products'][1];
             ob_end_clean();
@@ -3339,7 +3068,7 @@ if( BeRocket_AAPF::$debug_mode ) {
             $_RESPONSE['pagination'] = str_replace( '?explode=explode', '', $_RESPONSE['pagination'] );
             ob_end_clean();
         }
-        if ( $br_options['ajax_request_load_style'] == 'js' ) echo '||JSON||';
+        if ( $br_options['alternative_load_type'] == 'js' ) echo '||JSON||';
         $_RESPONSE = apply_filters('berocket_ajax_response_with_fix', $_RESPONSE);
         $_RESPONSE['attributesname'] = array_values($_RESPONSE['attributesname']);
         $_RESPONSE['attributes'] = array_values($_RESPONSE['attributes']);
@@ -3354,14 +3083,14 @@ if( BeRocket_AAPF::$debug_mode ) {
             }
         }
         echo json_encode( $_RESPONSE );
-        if ( $br_options['ajax_request_load_style'] == 'js' ) echo '||JSON||';
+        if ( $br_options['alternative_load_type'] == 'js' ) echo '||JSON||';
 
         die();
     }
 
     public static function start_clean() {
         $br_options = apply_filters( 'berocket_aapf_listener_br_options', BeRocket_AAPF::get_aapf_option() );
-        if ( $br_options['ajax_request_load_style'] != 'js' ) {
+        if ( $br_options['alternative_load_type'] != 'js' ) {
             ob_start();
         }
     }

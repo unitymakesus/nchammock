@@ -57,7 +57,7 @@ if ( is_array(berocket_isset($terms)) ) {
             $term_taxonomy_echo = berocket_isset($term, 'taxonomy');
         }
         $item_i++;
-        $meta_class = ( ! empty($show_product_count_per_attr) ? $term->count : '&nbsp;' );
+        $meta_class = apply_filters('berocket_widget_color_image_temp_meta_class_init', '&nbsp;', $term);
         $meta_after = '';
         if ( !$is_child_parent || !$is_first ) {
             if( $type == 'color' ) {
@@ -81,6 +81,7 @@ if ( is_array(berocket_isset($terms)) ) {
             <li class="berocket_child_parent_sample"><ul>
             <?php
         }
+        $meta_color_init = $meta_color;
         if( $type == 'color' ) {
             if( count($meta_color) == 1 ) {
                 $meta_color = $meta_color[0];
@@ -95,9 +96,6 @@ if ( is_array(berocket_isset($terms)) ) {
                     $meta_class .= '<span style="'.$meta_color_val.'" class="berocket_color_multiple_single berocket_color_multiple_single_'.$meta_color_key.'"></span>';
                 }
                 $meta_class .= '</span>';
-                if( ! empty($show_product_count_per_attr) ) {
-                    $meta_class .= '<span class="berocket_color_span_absolute"><span>'.$term->count.'</span></span>';
-                }
                 $meta_color = '';
             }
         } elseif( $type == 'image' ) {
@@ -109,12 +107,13 @@ if ( is_array(berocket_isset($terms)) ) {
                     $meta_color = 'background: url('.$meta_color[0].') no-repeat scroll 50% 50% rgba(0, 0, 0, 0);';
                     $meta_class = '&nbsp;';
                 }
-                $meta_after = ( ! empty($show_product_count_per_attr) ? '<span class="berocket_aapf_count">'.$term->count.'</span>' : '' );
+                $meta_after = '';
             } else {
                 $meta_color = '';
                 $meta_class = '';
             }
         }
+        list($meta_class, $meta_after, $meta_color) = apply_filters('berocket_widget_color_image_temp_meta_ready', array($meta_class, $meta_after, $meta_color), $term, $meta_color_init);
         ?>
         <li class="berocket_term_parent_<?php echo berocket_isset($term, 'parent'); 
         if ( $is_child_parent ) echo ' R__class__R';
@@ -161,10 +160,12 @@ if ( is_array(berocket_isset($terms)) ) {
                        <?php echo br_is_term_selected( $term, true, $is_child_parent_or, $child_parent_depth ); ?> />
                 <label data-for='checkbox_<?php echo str_replace ( '*' , '-' , berocket_isset($term, 'term_id')), str_replace ( '*' , '-' , $term_taxonomy_echo) ?>' 
                     class="berocket_label_widgets<?php if( br_is_term_selected( $term, true, $is_child_parent_or, $child_parent_depth ) != '') echo ' berocket_checked'; ?>">
-                    <?php if( $use_links_filters ) echo '<a href="'.berocket_add_filter_to_link($term_taxonomy_echo, berocket_isset($term, ($slug_urls ? 'slug' : 'term_id')), $operator).'">'; ?>
-                    <span class="berocket_color_span_block <?php if( empty($meta_after) && ! empty($show_product_count_per_attr) ) echo 'berocket_aapf_count'; ?>" style="<?php echo $meta_color; ?>"><?php echo $meta_class; ?></span>
-                    <?php echo ( ! empty($use_value_with_color) ? '<span class="berocket_color_text">' . ( ! empty($icon_before_value) ? ( ( substr( $icon_before_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_before_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_before_value.'" alt=""></i>' ) : '' ) . $term->name . ( ! empty($icon_after_value) ? ( ( substr( $icon_after_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_after_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_after_value.'" alt=""></i>' ) : '' ) . '</span>' : '' ); ?><?php echo berocket_isset($meta_after);
-                    if( $use_links_filters ) echo '</a>'; ?>
+                    <?php 
+                    echo apply_filters( 'berocket_check_radio_color_filter_term_text', ( '<span class="'. apply_filters('berocket_widget_color_image_temp_span_class', 'berocket_color_span_block', array($meta_class, $meta_after, $meta_color), $term) . '"
+                    style="' . $meta_color . '">' . $meta_class . '</span>' .
+                    ( ! empty($use_value_with_color) ? '<span class="berocket_color_text">' . ( ! empty($icon_before_value) ? ( ( substr( $icon_before_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_before_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_before_value.'" alt=""></i>' ) : '' ) . $term->name . ( ! empty($icon_after_value) ? ( ( substr( $icon_after_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_after_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_after_value.'" alt=""></i>' ) : '' ) . '</span>' : '' ) .
+                    berocket_isset($meta_after) ), $term, $operator, FALSE );
+                    ?>
                 </label>
             </span>
         </li>

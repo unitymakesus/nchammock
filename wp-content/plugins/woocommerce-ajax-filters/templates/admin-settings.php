@@ -4,6 +4,8 @@ $dplugin_link = 'http://berocket.com/product/woocommerce-ajax-products-filter';
 $dplugin_price = 26;
 $dplugin_desc = '';
 @ include 'settings_head.php';
+$BeRocket_AAPF = BeRocket_AAPF::getInstance();
+$defaults = $BeRocket_AAPF->defaults;
 ?>
 <div class="wrap">
     <form class="berocket_aapf_setting_form" method="post" action="options.php">
@@ -94,7 +96,7 @@ $dplugin_desc = '';
                         <span style="color:#666666;margin-left:2px;"><?php _e('Check if you want scroll page to the top of shop after filters change', 'BeRocket_AJAX_domain') ?></span>
                     </td>
                     <td <?php if( empty($options['scroll_shop_top']) ) echo ' style="display:none;"';?>>
-                        <input name="br_filters_options[scroll_shop_top_px]" type='number' value='<?php echo ( ! empty($options['scroll_shop_top_px']) ? $options['scroll_shop_top_px'] : BeRocket_AAPF::$defaults['scroll_shop_top_px'] ); ?>'/>
+                        <input name="br_filters_options[scroll_shop_top_px]" type='number' value='<?php echo ( ! empty($options['scroll_shop_top_px']) ? $options['scroll_shop_top_px'] : $defaults['scroll_shop_top_px'] ); ?>'/>
                         <span style="color:#666666;margin-left:2px;"><?php _e('px from products top.', 'BeRocket_AJAX_domain') ?></span><br>
                         <span><?php _e('Use this to fix top scroll.', 'BeRocket_AJAX_domain') ?></span>
                     </td>
@@ -317,18 +319,20 @@ $dplugin_desc = '';
         <div id="selectors" class="tab-item <?php if($options['br_opened_tab'] == 'selectors' ) echo 'current'; ?>">
             <table class="form-table">
                 <tr>
-                    <th scope="row"><?php _e('Get selectors automatically (BETA)', 'BeRocket_AJAX_domain') ?></th>
+                    <th scope="row"><?php _e('Get selectors automatically', 'BeRocket_AJAX_domain') ?></th>
                     <td>
                         <?php echo BeRocket_wizard_generate_autoselectors(array('products' => '.berocket_aapf_products_selector', 'pagination' => '.berocket_aapf_pagination_selector', 'result_count' => '.berocket_aapf_product_count_selector')); ?>
-                        <div>
-                            <?php _e('Please do not use it on live sites. If something went wrong write us.', 'BeRocket_AJAX_domain') ?>
-                        </div>
+                        <ol>
+                            <li><?php _e('Run Auto-selector', 'BeRocket_AJAX_domain') ?></li>
+                            <li><?php _e('Wait until end <strong style="color:red;">do not close this page</strong>', 'BeRocket_AJAX_domain') ?></li>
+                            <li><?php _e('Save settings with new selectors', 'BeRocket_AJAX_domain') ?></li>
+                        </ol>
                     </td>
                 </tr>
                 <tr>
                     <th scope="row"><?php _e('Products selector', 'BeRocket_AJAX_domain') ?></th>
                     <td>
-                        <input class="berocket_aapf_products_selector" size="30" name="br_filters_options[products_holder_id]" type='text' value='<?php echo ! empty($options['products_holder_id'])?$options['products_holder_id']:BeRocket_AAPF::$defaults['products_holder_id']?>'/>
+                        <input class="berocket_aapf_products_selector" size="30" name="br_filters_options[products_holder_id]" type='text' value='<?php echo ! empty($options['products_holder_id'])?$options['products_holder_id']:$defaults['products_holder_id']?>'/>
                         <br />
                         <span style="color:#666666;margin-left:2px;"><?php _e("Selector for tag that is holding products. Don't change this if you don't know what it is", 'BeRocket_AJAX_domain') ?></span>
                     </td>
@@ -336,7 +340,7 @@ $dplugin_desc = '';
                 <tr>
                     <th scope="row"><?php _e('Product count selector', 'BeRocket_AJAX_domain') ?></th>
                     <td>
-                        <input class="berocket_aapf_product_count_selector" size="30" name="br_filters_options[woocommerce_result_count_class]" type='text' value='<?php echo ! empty($options['woocommerce_result_count_class'])?$options['woocommerce_result_count_class']:BeRocket_AAPF::$defaults['woocommerce_result_count_class']?>'/>
+                        <input class="berocket_aapf_product_count_selector" size="30" name="br_filters_options[woocommerce_result_count_class]" type='text' value='<?php echo ! empty($options['woocommerce_result_count_class'])?$options['woocommerce_result_count_class']:$defaults['woocommerce_result_count_class']?>'/>
                         <br />
                         <span style="color:#666666;margin-left:2px;"><?php _e('Selector for tag with product result count("Showing 1–8 of 61 results"). Don\'t change this if you don\'t know what it is', 'BeRocket_AJAX_domain') ?></span>
                         <?php if( apply_filters('br_filters_options-woocommerce_removes_result_count-show', true) ) { ?>
@@ -350,7 +354,7 @@ $dplugin_desc = '';
                 <tr>
                     <th scope="row"><?php _e('Product order by selector', 'BeRocket_AJAX_domain') ?></th>
                     <td>
-                        <input size="30" name="br_filters_options[woocommerce_ordering_class]" type='text' value='<?php echo ! empty($options['woocommerce_ordering_class'])?$options['woocommerce_ordering_class']:BeRocket_AAPF::$defaults['woocommerce_ordering_class']?>'/>
+                        <input size="30" name="br_filters_options[woocommerce_ordering_class]" type='text' value='<?php echo ! empty($options['woocommerce_ordering_class'])?$options['woocommerce_ordering_class']:$defaults['woocommerce_ordering_class']?>'/>
                         <br />
                         <span style="color:#666666;margin-left:2px;"><?php _e("Selector for order by form with drop down menu. Don't change this if you don't know what it is", 'BeRocket_AJAX_domain') ?></span>
                         <?php if( apply_filters('br_filters_options-woocommerce_removes_ordering-show', true) ) { ?>
@@ -364,7 +368,7 @@ $dplugin_desc = '';
                 <tr>
                     <th scope="row"><?php _e('Products pagination selector', 'BeRocket_AJAX_domain') ?></th>
                     <td>
-                        <input class="berocket_aapf_pagination_selector" size="30" name="br_filters_options[woocommerce_pagination_class]" type='text' value='<?php echo ! empty($options['woocommerce_pagination_class'])?$options['woocommerce_pagination_class']:BeRocket_AAPF::$defaults['woocommerce_pagination_class']?>'/>
+                        <input class="berocket_aapf_pagination_selector" size="30" name="br_filters_options[woocommerce_pagination_class]" type='text' value='<?php echo ! empty($options['woocommerce_pagination_class'])?$options['woocommerce_pagination_class']:$defaults['woocommerce_pagination_class']?>'/>
                         <br />
                         <span style="color:#666666;margin-left:2px;"><?php _e("Selector for tag that is holding products. Don't change this if you don't know what it is", 'BeRocket_AJAX_domain') ?></span>
                         <?php if( apply_filters('br_filters_options-woocommerce_removes_pagination-show', true) ) { ?>
@@ -489,6 +493,13 @@ $dplugin_desc = '';
                     </td>
                 </tr>
                 <tr>
+                    <th scope="row"><?php _e('Display variation image', 'BeRocket_AJAX_domain') ?></th>
+                    <td>
+                        <input name="br_filters_options[search_variation_image]" type='checkbox' value='1' <?php if( ! empty($options['search_variation_image']) ) echo "checked='checked'";?>/>
+                        <span style="color:#666666;margin-left:2px;"><?php _e('Display variation image instead variable image on filtering', 'BeRocket_AJAX_domain') ?></span>
+                    </td>
+                </tr>
+                <tr>
                     <th scope="row"><?php _e('Template ajax load fix', 'BeRocket_AJAX_domain') ?></th>
                     <td>
                         <input class="load_fix_ajax_request_load" name="br_filters_options[ajax_request_load]" type='checkbox' value='1' <?php if( ! empty($options['ajax_request_load']) ) echo "checked='checked'";?>/>
@@ -597,6 +608,44 @@ $dplugin_desc = '';
                     <th scope="row"><?php _e('Use filtered variation only after search', 'BeRocket_AJAX_domain') ?></th>
                     <td>
                         <input name="br_filters_options[use_filtered_variation_once]" type='checkbox' value='1' <?php if( ! empty($options['use_filtered_variation_once']) ) echo "checked='checked'";?>/>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php _e('Replace old widgets', 'BeRocket_AJAX_domain') ?></th>
+                    <td>
+                        <?php $old_filter_widgets = get_option('widget_berocket_aapf_widget');
+                        if( ! is_array($old_filter_widgets) ) {
+                            $old_filter_widgets = array();
+                        }
+                        foreach ($old_filter_widgets as $key => $value) {
+                            if (!is_numeric($key)) {
+                                unset($old_filter_widgets[$key]);
+                            }
+                        }
+                        ?>
+                        <span 
+                            class="button berocket_replace_deprecated_with_new<?php if( !count($old_filter_widgets) ) echo ' berocket_ajax_sending'; ?>"
+                            data-ready="<?php _e('Widget replaced', 'BeRocket_AJAX_domain') ?>"
+                            data-loading="<?php _e('Replacing widgets... Please wait', 'BeRocket_AJAX_domain') ?>"
+                            <?php if( !count($old_filter_widgets) ) echo 'disabled="disabled"'; ?>
+                        >
+                            <?php if( count($old_filter_widgets) ) { _e('Replace widgets', 'BeRocket_AJAX_domain'); } else { _e('No old widgets', 'BeRocket_AJAX_domain'); } ?>
+                        </span>
+                        <p><?php _e('Replace deprecated widgets with new single filter widgets', 'BeRocket_AJAX_domain') ?></p>
+                        <script>
+                            jQuery('.berocket_replace_deprecated_with_new').click(function() {
+                                var $this = jQuery(this);
+                                if( ! $this.is('.berocket_ajax_sending') ) {
+                                    $this.data('text', $this.text());
+                                    $this.attr('disabled', 'disabled');
+                                    $this.text($this.data('loading'));
+                                    $this.addClass('berocket_ajax_sending');
+                                    jQuery.post(ajaxurl, {action:'replace_deprecated_with_new'}, function() {
+                                        $this.text($this.data('ready'));
+                                    });
+                                }
+                            });
+                        </script>
                     </td>
                 </tr>
             </table>

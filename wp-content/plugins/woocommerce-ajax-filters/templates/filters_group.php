@@ -3,47 +3,11 @@
         <tr>
             <th><?php _e('Custom CSS class', 'BeRocket_AJAX_domain'); ?></th>
             <td>
-                <input type="text" name="br_filter_group[custom_class]" value="<?php echo br_get_value_from_array($filters, 'custom_class'); ?>">
+                <input type="text" name="<?php echo $post_name; ?>[custom_class]" value="<?php echo br_get_value_from_array($filters, 'custom_class'); ?>">
                 <small><?php _e('use white space for multiple classes', 'BeRocket_AJAX_domain');?></small>
             </td>
         </tr>
-        <tr>
-            <th><?php _e('Show filters above products', 'BeRocket_AJAX_domain'); ?></th>
-            <td>
-                <?php $options = BeRocket_AAPF::get_aapf_option();
-                $elements_above_products = br_get_value_from_array($options, 'elements_above_products');
-                if( ! is_array($elements_above_products) ) {
-                    $elements_above_products = array();
-                }
-                global $pagenow;
-                $post_id = 0;
-                if( ! in_array( $pagenow, array( 'post-new.php' ) ) ) {
-                    $post_id = $post->ID;
-                }
-                 ?>
-                <input type="checkbox" name="br_filter_group_show_above" value="1"<?php if(in_array($post_id, $elements_above_products)) echo ' checked'; ?>>
-            </td>
-        </tr>
-        <tr>
-            <th><?php _e('Display filters in line', 'BeRocket_AJAX_domain'); ?></th>
-            <td>
-                <input type="checkbox" name="br_filter_group[display_inline]" value="1"<?php if(! empty($filters['display_inline']) ) echo ' checked'; ?>>
-            </td>
-        </tr>
-        <tr>
-            <th><?php _e('Show title only', 'BeRocket_AJAX_domain'); ?></th>
-            <td>
-                <input type="checkbox" class="berocket_hidden_clickable_option" name="br_filter_group[hidden_clickable]" value="1"<?php if(! empty($filters['hidden_clickable']) ) echo ' checked'; ?>>
-                <span><?php _e('Only title will be visible. Filter will be displayed after click on title and hide after click everywhere else', 'BeRocket_AJAX_domain'); ?></span>
-            </td>
-        </tr>
-        <tr class="berocket_hidden_clickable_option_data">
-            <th><?php _e('Display filters on mouse over', 'BeRocket_AJAX_domain'); ?></th>
-            <td>
-                <input type="checkbox" name="br_filter_group[hidden_clickable_hover]" value="1"<?php if(! empty($filters['hidden_clickable_hover']) ) echo ' checked'; ?>>
-                <span><?php _e('Display on mouse over and hide on mouse leave', 'BeRocket_AJAX_domain'); ?></span>
-            </td>
-        </tr>
+        <?php do_action('berocket_aapf_filters_group_settings', $filters, $post_name, $post); ?>
     </table>
     <h3><?php _e('Filters In Group', 'BeRocket_AJAX_domain'); ?></h3>
     <?php
@@ -60,7 +24,7 @@
         wp_reset_postdata();
     }
     ?>
-    <ul class="berocket_filter_added_list" data-name="br_filter_group[filters][]" data-url="<?php echo admin_url('post.php');?>">
+    <ul class="berocket_filter_added_list" data-name="<?php echo $post_name; ?>[filters][]" data-url="<?php echo admin_url('post.php');?>">
     <?php 
     if( isset($filters['filters']) && is_array($filters['filters']) ) {
         foreach($filters['filters'] as $filter) {
@@ -68,12 +32,12 @@
             $filter_post = get_post($filter_id);
             if( ! empty($filter_post) ) {
                 echo '<li class="berocket_filter_added_' . $filter_id . '"><fa class="fa fa-bars"></fa>
-                    <input type="hidden" name="br_filter_group[filters][]" value="' . $filter_id . '">
+                    <input type="hidden" name="'.$post_name.'[filters][]" value="' . $filter_id . '">
                     ' . $filter_post->post_title . ' <small>ID:' . $filter_id . '</small>
                     <i class="fa fa-times"></i>
                     <a class="berocket_edit_filter" target="_blank" href="' . admin_url('post.php?post='.$filter_id.'&action=edit') . '">' . __('Edit', 'BeRocket_AJAX_domain') . '</a>
                     <div class="berocket_hidden_clickable_options">
-                        ' . __('Width', 'BeRocket_AJAX_domain') . '<input type="text" name="br_filter_group[filters_data][' . $filter_id . '][width]" value="' . br_get_value_from_array($filters, array('filters_data', $filter_id, 'width')) . '" placeholder="100%">
+                        ' . __('Width', 'BeRocket_AJAX_domain') . '<input type="text" name="'.$post_name.'[filters_data][' . $filter_id . '][width]" value="' . br_get_value_from_array($filters, array('filters_data', $filter_id, 'width')) . '" placeholder="100%">
                     </div>
                 </li>';
             }
@@ -93,7 +57,7 @@
             html += '<i class="fa fa-times"></i>';
             html += ' <a class="berocket_edit_filter" target="_blank" href="'+jQuery('.berocket_filter_added_list').data('url')+'?post='+jQuery('.berocket_filter_list').val()+'&action=edit"><?php _e('Edit', 'BeRocket_AJAX_domain'); ?></a>';
             html += '<div class="berocket_hidden_clickable_options">';
-            html += '<?php _e('Width', 'BeRocket_AJAX_domain'); ?><input type="text" name="br_filter_group[filters_data]['+jQuery('.berocket_filter_list').val()+'][width]" placeholder="100%" value="">';
+            html += '<?php _e('Width', 'BeRocket_AJAX_domain'); ?><input type="text" name="<?php echo $post_name; ?>[filters_data]['+jQuery('.berocket_filter_list').val()+'][width]" placeholder="100%" value="">';
             html += '</div>';
             html += '</li>';
             jQuery('.berocket_filter_added_list').append(jQuery(html));
@@ -109,17 +73,6 @@
             jQuery( ".berocket_filter_added_list" ).sortable({axis:"y", handle:".fa-bars", placeholder: "berocket_sortable_space"});
         }
     });
-    jQuery(document).on('change', '.berocket_hidden_clickable_option', berocket_hidden_clickable_option);
-    function berocket_hidden_clickable_option() {
-        if( jQuery('.berocket_hidden_clickable_option').prop('checked') ) {
-            jQuery('.berocket_hidden_clickable_option_data').show();
-            jQuery('.berocket_filter_added_list').addClass('berocket_hidden_clickable_enabled');
-        } else {
-            jQuery('.berocket_hidden_clickable_option_data').hide();
-            jQuery('.berocket_filter_added_list').removeClass('berocket_hidden_clickable_enabled');
-        }
-    }
-    berocket_hidden_clickable_option();
 </script>
 <style>
 .berocket_filter_added_list li {

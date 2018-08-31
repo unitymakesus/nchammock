@@ -105,7 +105,7 @@ input[type=radio]:checked + .brjsf_toggle span.brjsf_toggler {
     margin: 0;
     min-width: 100%;
     background-color: white;
-    z-index: 99999!important;
+    z-index: 9999999999!important;
     max-height: 200px!important;
     overflow: auto!important;
     overflow-y: auto!important;

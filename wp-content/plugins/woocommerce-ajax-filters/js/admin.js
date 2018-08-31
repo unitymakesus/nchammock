@@ -1,3 +1,22 @@
+var berocket_admin_filter_types = {
+    tag:['checkbox','radio','select','color','image','tag_cloud'],
+    product_cat:['checkbox','radio','select','color','image'],
+    sale:['checkbox','radio','select'],
+    custom_taxonomy:['checkbox','radio','select','color','image'],
+    attribute:['checkbox','radio','select','color','image'],
+    price:['slider'],
+    filter_by:['checkbox','radio','select','color','image']
+};
+var berocket_admin_filter_types_by_attr = {
+    checkbox:'<option value="checkbox">Checkbox</option>',
+    radio:'<option value="radio">Radio</option>',
+    select:'<option value="select">Select</option>',
+    color:'<option value="color">Color</option>',
+    image:'<option value="image">Image</option>',
+    slider:'<option value="slider">Slider</option>',
+    tag_cloud:'<option value="tag_cloud">Tag cloud</option>'
+};
+
 (function ($) {
     $(document).ready(function () {
 
@@ -171,7 +190,6 @@
             product_cat_current = $('.berocket_aapf_product_sub_cat_current_input', $parent).prop('checked');
             filter_type = $('.berocket_aapf_widget_admin_filter_type_select', $parent).val();
             filter_type_data = $('.berocket_aapf_widget_admin_filter_type_select', $parent).find('option:selected').data();
-            console.log(filter_type_data);
             attribute = $('.berocket_aapf_widget_admin_filter_type_attribute_select', $parent).val();
             custom_taxonomy = $('.berocket_aapf_widget_admin_filter_type_custom_taxonomy_select', $parent).val();
 
@@ -190,24 +208,31 @@
                     }
                 }
             }
+            
             if ( changed != 'type' && changed != 'child_parent' ) {
+                var select_options = '';
+                var select_options_variants = [];
                 if ( filter_type == 'tag' ) {
-                    $('.berocket_aapf_widget_admin_type_select', $parent).html('<option value="checkbox">Checkbox</option><option value="radio">Radio</option><option value="select">Select</option><option value="color">Color</option><option value="image">Image</option><option value="tag_cloud">Tag cloud</option>');
+                    select_options_variants = berocket_admin_filter_types.tag;
                 } else if ( filter_type == 'product_cat' || ( filter_type == 'custom_taxonomy' && ( custom_taxonomy == 'product_tag' || custom_taxonomy == 'product_cat' ) ) ) {
-                    $('.berocket_aapf_widget_admin_type_select', $parent).html('<option value="checkbox">Checkbox</option><option value="radio">Radio</option><option value="select">Select</option><option value="color">Color</option><option value="image">Image</option>');
+                    select_options_variants = berocket_admin_filter_types.product_cat;
                 } else if ( filter_type == '_sale' || filter_type == '_stock_status' || filter_type == '_rating' ) {
-                    $('.berocket_aapf_widget_admin_type_select', $parent).html('<option value="checkbox">Checkbox</option><option value="radio">Radio</option><option value="select">Select</option>');
+                    select_options_variants = berocket_admin_filter_types.sale;
                 } else if ( filter_type == 'custom_taxonomy' ) {
-                    $('.berocket_aapf_widget_admin_type_select', $parent).html('<option value="checkbox">Checkbox</option><option value="radio">Radio</option><option value="select">Select</option><option value="color">Color</option><option value="image">Image</option><option value="slider">Slider</option>');
+                    select_options_variants = berocket_admin_filter_types.custom_taxonomy;
                 } else if ( filter_type == 'attribute' ) {
                     if ( attribute == 'price' ) {
-                        $('.berocket_aapf_widget_admin_type_select', $parent).html('<option value="slider">Slider</option><option value="ranges">Ranges</option>');
+                        select_options_variants = berocket_admin_filter_types.price;
                     } else {
-                        $('.berocket_aapf_widget_admin_type_select', $parent).html('<option value="checkbox">Checkbox</option><option value="radio">Radio</option><option value="select">Select</option><option value="color">Color</option><option value="image">Image</option><option value="slider">Slider</option>');
+                        select_options_variants = berocket_admin_filter_types.attribute;
                     }
                 } else if ( filter_type == 'filter_by' ) {
-                    $('.berocket_aapf_widget_admin_type_select', $parent).html('<option value="checkbox">Checkbox</option><option value="radio">Radio</option><option value="color">Color</option><option value="image">Image</option><option value="select">Select</option>');
+                    select_options_variants = berocket_admin_filter_types.filter_by;
                 }
+                select_options_variants.forEach(function(element) {
+                    select_options = select_options + berocket_admin_filter_types_by_attr[element];
+                });
+                $('.berocket_aapf_widget_admin_type_select', $parent).html(select_options);
                 $('.berocket_aapf_widget_admin_type_select', $parent).data('sc_change', '1');
             }
             type = $('.berocket_aapf_widget_admin_type_select', $parent).val();
@@ -332,20 +357,22 @@
                     $('.include_exclude_list', $parent).text("");
                     $('.include_exclude_select', $parent).hide();
                 } else {
-                    $('.include_exclude_select', $parent).show();
-                    var data = {
-                        'action': 'br_include_exclude_list',
-                        'taxonomy_name': taxonomy_name,
-                    };
-                    $.post(ajaxurl, data, function(data) {
-                        if( data ) {
-                            var replace_str = /%field_name%/g;
-                            data = data.replace(replace_str, exclude_include_name);
-                            $('.include_exclude_list', $parent).html(data);
-                        } else {
-                            $('.include_exclude_list', $parent).text("");
-                        }
-                    });
+                    if( $('.include_exclude_list', $parent).length ) {
+                        $('.include_exclude_select', $parent).show();
+                        var data = {
+                            'action': 'br_include_exclude_list',
+                            'taxonomy_name': taxonomy_name,
+                        };
+                        $.post(ajaxurl, data, function(data) {
+                            if( data ) {
+                                var replace_str = /%field_name%/g;
+                                data = data.replace(replace_str, exclude_include_name);
+                                $('.include_exclude_list', $parent).html(data);
+                            } else {
+                                $('.include_exclude_list', $parent).text("");
+                            }
+                        });
+                    }
                 }
             } else {
                 $('.include_exclude_list', $parent).text("");
@@ -645,7 +672,7 @@
             $parent.find('.berocket_search_link_'+$(this).val()).show();
         });
         $(document).on('change', '.berocket_attributes_number_style', function() {
-            var $parent = $(this).parents('.berocket_aapf_advanced_settings, #product_filters_setup').first();
+            var $parent = $(this).parents('.berocket_attributes_number_style_data');
             if( $(this).prop('checked') ) {
                 $parent.find('.berocket_attributes_number_styles').show();
             } else {
@@ -791,5 +818,6 @@ var br_savin_ajax = false;
                 }
             });
         });
+        jQuery('#widget-1_berocket_aapf_widget-__i__, #widget-2_berocket_aapf_widget-__i__, #widget-3_berocket_aapf_widget-__i__, #widget-4_berocket_aapf_widget-__i__, #widget-5_berocket_aapf_widget-__i__, #widget-6_berocket_aapf_widget-__i__, #widget-7_berocket_aapf_widget-__i__, #widget-8_berocket_aapf_widget-__i__').remove();
     });
 })(jQuery);

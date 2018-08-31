@@ -172,6 +172,12 @@ if( ! class_exists('BeRocket_selector_wizard_woocommerce') ) {
             <span class="berocket_autoselect_ready" style="display:none;"><i class="fa fa-check fa-3x fa-fw"></i></span>
             <span class="berocket_autoselect_error" style="display:none;"><i class="fa fa-times fa-3x fa-fw"></i></span>
             <div class="berocket_autoselector_load" style="display:none;"><div class="berocket_line"></div><div class="berocket_autoselector_action"></div></div>
+            <h4>' . __('Steps:', 'BeRocket_domain') . '</h4>
+            <ol>
+                <li><span>' . __('Creating products', 'BeRocket_domain') . '</span> <i class="fa"></i></li>
+                <li><span>' . __('Gettings selectors', 'BeRocket_domain') . '</span> <i class="fa"></i></li>
+                <li><span>' . __('Removing products', 'BeRocket_domain') . '</span> <i class="fa"></i></li>
+            </ol>
         </div>';
         return $html;
     }

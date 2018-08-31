@@ -4,8 +4,8 @@ Contributors: dholovnia, berocket
 Donate link: http://berocket.com/product/woocommerce-ajax-products-filter
 Tags: filters, product filters, ajax product filters, advanced product filters, woocommerce filters, woocommerce product filters, woocommerce ajax product filters
 Requires at least: 4.0
-Tested up to: 4.9.5
-Stable tag: 2.0.9.2
+Tested up to: 4.9.8
+Stable tag: 2.2.0.2
 License: Berocket License
 License URI: http://berocket.com/license
 
@@ -127,6 +127,81 @@ you set to order `by custom` you can drag&amp;drop values up and down and set yo
 ---
 
 == Changelog ==
+
+= 2.2.0.2 =
+* Fix - Get query with Alternative load
+* Fix - Update from free version of plugin
+* Fix - Session start error
+
+= 2.2.0.1 =
+* Fix - Alternative load errors
+* Fix - Reset button for product table
+
+= 2.2 =
+* Enhancement - jQuery loading type setuped as default
+* Enhancement - Other AJAX loading types now is deprecated
+* Enhancement - Wizard for filters
+* Enhancement - Better compatibility with free version of plugin
+* Enhancement - Changed option names to be more intuitive
+* Enhancement - Better compatibility with WooCommerce Product Table plugin
+* Fix - Pagination for other languages
+* Fix - Font awesome not disabling with option
+* Fix - Better work with WooCommerce shortcodes
+* Fix - Correct work with attribute archive pages
+
+= 2.1.1.1 =
+* Fix - Some error with WooCommerce shortcode
+
+= 2.1.1 =
+* Fix - Fixed conditions
+
+= 2.1 =
+* Enhancement - New settings design
+* Enhancement - Support sorting for BeRocket Brands
+* Enhancement - More informative auto-selectors option
+* Enhancement - Some options now is deprecated
+* Enhancement - Some filtering optimizations
+* Fix - Search box hide on mobile/desktop fix
+* Fix - WooCommerce shortcode filtering
+* Fix - Child/Parent in Select
+* Fix - Child/Parent for categories
+
+= 2.0.9.8 =
+* Fix - Nice URL with custom shop page slug
+
+= 2.0.9.7 =
+* Enhancement - Max inline count for inline grouped filters
+* Enhancement - Auto-selectors release version
+* Enhancement - Title in group widget displayed on sidebar
+* Fix - "Use filtered variation only after search" option do not work without "Use filtered variation link and session" option
+* Fix - Nice URL do not work without setuped WooCommerce page
+* Fix - Select2 option break old version of WooCommerce
+* Fix - Limit width of selectbox in widgets
+* Fix - Select multiple work incorrect
+* Fix - Select multiple displayed incorrect on some theme
+
+= 2.0.9.6 =
+* Fix - Child-parent work incorrect with Reset button
+* Fix - WooCommerce Product table reset button doesn't work
+* Fix - Slider type of filter work incorrect with WooCommerce Product Table plugin
+
+= 2.0.9.5 =
+* Enhancement - Replace images in variable products to variation image
+* Fix - Select type for child-parent
+* Fix - Product table in shop page
+* Fix - Saving options in other posts
+* Fix - Price style in Selected filters area
+* Fix - WCML Currency exchange
+
+= 2.0.9.4 =
+* Enhancement - Option to replace deprecated widgets with new one automatically
+* Fix - Improve admin side loading speed
+* Fix - Compatibility with Uncode theme
+* Fix - Visual composer and Divi builder modules
+* Fix - Old widgets is fully deprecated and disabled from any changes
+
+= 2.0.9.3 =
+* Enhancement - Better plugin menu items location
 
 = 2.0.9.2 =
 * Enhancement - Hide variable products without needed variation

@@ -19,17 +19,19 @@ $is_first = true;
 $random_name = rand();
 if ( $is_child_parent ) {
 ?>
-<li class="berocket_child_parent_sample select"><ul>
+<li class="berocket_child_parent_sample select<?php if( ! empty($select_multiple) ) echo ' multiple'; ?>"><ul>
     <span>
         <?php $term = br_get_value_from_array($terms, 0);
         $term_taxonomy_echo = berocket_isset($term, 'wpml_taxonomy');
         if( empty($term_taxonomy_echo) ) {
             $term_taxonomy_echo = berocket_isset($term, 'taxonomy');
         } ?>
-        <ul id='checkbox_<?php echo berocket_isset($term, 'term_id') ?>_<?php echo berocket_isset($random_name) ?>'
-                class="<?php echo br_get_value_from_array($uo, array('class', 'selectbox')) ?> <?php echo $term_taxonomy_echo ?>"
+        <ul<?php if( ! empty($select_multiple) ) echo ' multiple="multiple" data-placeholder="'.$select_first_element_text.'"'?> id='checkbox_<?php echo berocket_isset($term, 'term_id') ?>_<?php echo berocket_isset($random_name) ?>'
+                class="<?php echo br_get_value_from_array($uo, array('class', 'selectbox')) ?> <?php echo $term_taxonomy_echo; ?>"
                 data-taxonomy='<?php echo $term_taxonomy_echo ?>'>
+                <?php if( empty($select_multiple) ) { ?>
                 <li data-taxonomy='<?php echo $term_taxonomy_echo ?>' value=''><?php echo $select_first_element_text ?></li>
+                <?php } ?>
                 <li value='<?php echo berocket_isset($term, 'term_id') ?>' data-term_id='<?php echo berocket_isset($term, 'term_id') ?>' autocomplete="off"
                         data-taxonomy='<?php echo $term_taxonomy_echo ?>'
                         data-term_count='<?php echo berocket_isset($term, 'count') ?>' 
@@ -37,7 +39,7 @@ if ( $is_child_parent ) {
                         data-term_name='<?php echo berocket_isset($term, 'name') ?>' class="select_<?php echo berocket_isset($term, 'term_id') ?>"
                         data-operator='<?php echo berocket_isset($operator) ?>'
                     <?php echo br_is_term_selected( $term, false, $is_child_parent_or, $child_parent_depth ); ?>
-                    ><?php echo berocket_isset($term, 'name') . ( ! empty($show_product_count_per_attr) ? ' (' . berocket_isset($term, 'count') . ')' : '' ) ?></li>
+                    ><?php echo apply_filters('berocket_radio_filter_term_name', berocket_isset($term, 'name'), $term) ?></li>
         </ul>
     </span>
 </ul></li>
@@ -82,7 +84,15 @@ if( empty($term_taxonomy_echo) ) {
             $term_taxonomy_echo = berocket_isset($term, 'wpml_taxonomy');
             if( empty($term_taxonomy_echo) ) {
                 $term_taxonomy_echo = berocket_isset($term, 'taxonomy');
-            } ?>
+            }
+            $parent_count = 0;
+            if(isset($term->parent) && $term->parent != 0) {
+                $parent_count = get_ancestors( $term->term_id, $term->taxonomy );
+                $parent_count = count($parent_count);
+            } elseif( isset($term->depth) ) {
+                $parent_count = $term->depth;
+            }
+             ?>
                 <option value='<?php echo berocket_isset($term, 'term_id') ?>' data-term_id='<?php echo berocket_isset($term, 'term_id') ?>'
                         data-taxonomy='<?php echo $term_taxonomy_echo ?>'
                         data-term_count='<?php echo berocket_isset($term, 'count') ?>' 
@@ -91,7 +101,7 @@ if( empty($term_taxonomy_echo) ) {
                         data-operator='<?php echo berocket_isset($operator) ?>'
                         <?php if( ! $is_child_parent_or && ! empty($hide_o_value) && berocket_isset($term, 'count') == 0 ) { echo ' hidden disabled'; $hiden_value = true; } ?>
                     <?php echo br_is_term_selected( $term, false, $is_child_parent_or, $child_parent_depth ); ?>
-                    ><?php echo berocket_isset($term, 'name') . ( ! empty($show_product_count_per_attr) ? ' (' . $term->count . ')' : '' ) ?></option>
+                    ><?php for($i=0;$i<$parent_count;$i++){echo apply_filters('berocket_aapf_select_term_child_prefix', '-&nbsp;');}echo apply_filters('berocket_radio_filter_term_name', berocket_isset($term, 'name'), $term) ?></option>
             <?php endforeach; ?>
         </select>
     </span>

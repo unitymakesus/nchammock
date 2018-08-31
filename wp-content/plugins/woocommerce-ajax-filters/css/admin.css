@@ -378,3 +378,18 @@ td.colorpicker_field.colorpicker_removed:after {
         border-bottom: 1px solid #ccc;
     }
 }
+.berocket_disable_deprecated {
+    position: relative;
+}
+.berocket_disable_deprecated_hide {
+    opacity: 0.5;
+    background-color: white;
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+}
+.berocket_new_widget_selectbox {
+    max-width: 100%;
+}

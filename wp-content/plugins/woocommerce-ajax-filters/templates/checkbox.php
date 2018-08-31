@@ -75,9 +75,11 @@ if ( ! empty($terms) ):
                        <?php echo br_is_term_selected( $term, true, $is_child_parent_or, $child_parent_depth ); ?> />
                 <label data-for='checkbox_<?php echo str_replace ( '*' , '-' , berocket_isset($term, 'term_id')), str_replace ( '*' , '-' , $term_taxonomy_echo) ?>' style="<?php echo ( empty($uo['style']['label']) ? '' : $uo['style']['label'] )?>" 
                        class="berocket_label_widgets<?php if( br_is_term_selected( $term, true, $is_child_parent_or, $child_parent_depth ) != '') echo ' berocket_checked'; ?>">
-                    <?php if( $use_links_filters ) echo '<a href="'.berocket_add_filter_to_link($term_taxonomy_echo, berocket_isset($term, ($slug_urls ? 'slug' : 'term_id')), $operator).'">';
-                    echo ( ! empty($icon_before_value) ? ( ( substr( $icon_before_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_before_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_before_value.'" alt=""></i>' ) : '' ) . berocket_isset($term, 'name') . ( ! empty($show_product_count_per_attr) ? ' <span class="berocket_aapf_count">' . berocket_isset($term, 'count') . '</span>' : '' ) . ( ! empty($icon_after_value) ? ( ( substr( $icon_after_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_after_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_after_value.'" alt=""></i>' ) : '' );
-                    if( $use_links_filters ) echo '</a>'; ?>
+                    <?php
+                    echo apply_filters( 'berocket_check_radio_color_filter_term_text', ( ( ! empty($icon_before_value) ? ( ( substr( $icon_before_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_before_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_before_value.'" alt=""></i>' ) : '' ) . 
+                    apply_filters('berocket_radio_filter_term_name', berocket_isset($term, 'name'), $term) . 
+                    ( ! empty($icon_after_value) ? ( ( substr( $icon_after_value, 0, 3) == 'fa-' ) ? '<i class="fa '.$icon_after_value.'"></i>' : '<i class="fa"><img class="berocket_widget_icon" src="'.$icon_after_value.'" alt=""></i>' ) : '' ) ), $term, $operator, FALSE );
+                    ?>
                 </label>
                 <?php if( ! empty($hide_child_attributes) ) { ?>
                 <span data-term_id='<?php echo str_replace ( '*' , '-' , berocket_isset($term, 'term_id')) ?>' class="br_child_toggle br_child_toggle_<?php echo str_replace ( '*' , '-' , berocket_isset($term, 'term_id')); ?>"><i class="fa fa-plus" aria-hidden="true"></i></span>

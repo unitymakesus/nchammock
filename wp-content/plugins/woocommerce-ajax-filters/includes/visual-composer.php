@@ -1,17 +1,19 @@
 <?php
 function berocket_filter_vc_before_init() {
 if( class_exists('WPBakeryShortCode') && function_exists('vc_map') ) {
+    global $post;
+    $old_post = $post;
     class WPBakeryShortCode_br_filter_single extends WPBakeryShortCode {
     }
-    $query = new WP_Query(array('post_type' => 'br_product_filter', 'nopaging' => true));
+    $query = new WP_Query(array('post_type' => 'br_product_filter', 'nopaging' => true, 'fields' => 'ids'));
+    $posts = $query->get_posts();
     $filter_list = array(__('--Please select filter--', 'BeRocket_AJAX_domain') => '');
-    if ( $query->have_posts() ) {
-        while ( $query->have_posts() ) {
-            $query->the_post();
-            $filter_list[get_the_title() . ' (ID:' . get_the_id() . ')'] = get_the_id();
+    if ( is_array($posts) && count($posts) ) {
+        foreach($posts as $post_id) {
+            $filter_list[get_the_title($post_id) . ' (ID:' . $post_id . ')'] = $post_id;
         }
-        wp_reset_postdata();
     }
+    wp_reset_query();
     vc_map( array(
         'base' => 'br_filter_single',
         'name' => __( 'Single Filter', 'BeRocket_AJAX_domain' ),
@@ -29,15 +31,15 @@ if( class_exists('WPBakeryShortCode') && function_exists('vc_map') ) {
     ) );
     class WPBakeryShortCode_br_filters_group extends WPBakeryShortCode {
     }
-    $query = new WP_Query(array('post_type' => 'br_filters_group', 'nopaging' => true));
+    $query = new WP_Query(array('post_type' => 'br_filters_group', 'nopaging' => true, 'fields' => 'ids'));
+    $posts = $query->get_posts();
     $filter_list = array(__('--Please select filter--', 'BeRocket_AJAX_domain') => '');
-    if ( $query->have_posts() ) {
-        while ( $query->have_posts() ) {
-            $query->the_post();
-            $filter_list[get_the_title() . ' (ID:' . get_the_id() . ')'] = get_the_id();
+    if ( is_array($posts) && count($posts) ) {
+        foreach($posts as $post_id) {
+            $filter_list[get_the_title($post_id) . ' (ID:' . $post_id . ')'] = $post_id;
         }
-        wp_reset_postdata();
     }
+    wp_reset_query();
     vc_map( array(
         'base' => 'br_filters_group',
         'name' => __( 'Group Filter', 'BeRocket_AJAX_domain' ),
@@ -55,4 +57,4 @@ if( class_exists('WPBakeryShortCode') && function_exists('vc_map') ) {
     ) );
 }
 }
-add_action('vc_before_init', 'berocket_filter_vc_before_init');
+add_action('vc_before_init', 'berocket_filter_vc_before_init', 100000);

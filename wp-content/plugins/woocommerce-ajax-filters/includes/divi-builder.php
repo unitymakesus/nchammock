@@ -16,15 +16,15 @@ function berocket_filter_et_builder_ready() {
             }
 
             function get_fields() {
-                $query = new WP_Query(array('post_type' => 'br_product_filter', 'nopaging' => true));
+                $query = new WP_Query(array('post_type' => 'br_product_filter', 'nopaging' => true, 'fields' => 'ids'));
+                $posts = $query->get_posts();
                 $filter_list = array('0' => __('--Please select filter--', 'BeRocket_AJAX_domain'));
-                if ( $query->have_posts() ) {
-                    while ( $query->have_posts() ) {
-                        $query->the_post();
-                        $filter_list[get_the_id()] = get_the_title() . ' (ID:' . get_the_id() . ')';
+                if ( is_array($posts) && count($posts) ) {
+                    foreach($posts as $post_id) {
+                        $filter_list[$post_id] = get_the_title($post_id) . ' (ID:' . $post_id . ')';
                     }
-                    wp_reset_postdata();
                 }
+    
                 $fields = array(
                     'filter_id' => array(
                         'label'           => esc_html__( 'Filter', 'BeRocket_AJAX_domain' ),
@@ -73,15 +73,15 @@ function berocket_filter_et_builder_ready() {
             }
 
             function get_fields() {
-                $query = new WP_Query(array('post_type' => 'br_filters_group', 'nopaging' => true));
+                $query = new WP_Query(array('post_type' => 'br_filters_group', 'nopaging' => true, 'fields' => 'ids'));
+                $posts = $query->get_posts();
                 $filter_list = array('0' => __('--Please select group--', 'BeRocket_AJAX_domain'));
-                if ( $query->have_posts() ) {
-                    while ( $query->have_posts() ) {
-                        $query->the_post();
-                        $filter_list[get_the_id()] = get_the_title() . ' (ID:' . get_the_id() . ')';
+                if ( is_array($posts) && count($posts) ) {
+                    foreach($posts as $post_id) {
+                        $filter_list[$post_id] = get_the_title($post_id) . ' (ID:' . $post_id . ')';
                     }
-                    wp_reset_postdata();
                 }
+                wp_reset_query();
                 $fields = array(
                     'group_id' => array(
                         'label'           => esc_html__( 'Group', 'BeRocket_AJAX_domain' ),

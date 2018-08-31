@@ -64,14 +64,18 @@ class BeRocket_AAPF_Wizard {
                 <table class="framework-form-table berocket_framework_menu_selectors">
                     <tbody>
                         <tr style="display: table-row;">
-                            <th scope="row"><?php _e('Get selectors automatically (BETA)', 'BeRocket_AJAX_domain') ?></th>
+                            <th scope="row"><?php _e('Get selectors automatically', 'BeRocket_AJAX_domain') ?></th>
                             <td>
                                 <?php echo BeRocket_wizard_generate_autoselectors(array(
                                     'products' => '.berocket_aapf_products_selector',
                                     'pagination' => '.berocket_aapf_pagination_selector',
                                     'result_count' => '.berocket_aapf_product_count_selector')); ?>
                                 <div>
-                                    <?php _e('Please do not use it on live sites. If something went wrong write us.', 'BeRocket_AJAX_domain') ?>
+                                    <ol>
+                                        <li><?php _e('Run Auto-selector', 'BeRocket_AJAX_domain') ?></li>
+                                        <li><?php _e('Wait until end <strong style="color:red;">do not close this page</strong>', 'BeRocket_AJAX_domain') ?></li>
+                                        <li><?php _e('Save settings with new selectors', 'BeRocket_AJAX_domain') ?></li>
+                                    </ol>
                                 </div>
                             </td>
                         </tr>
@@ -171,7 +175,8 @@ class BeRocket_AAPF_Wizard {
             );
             $option = array_merge($option, $new_option);
         }
-        $option = BeRocket_AAPF::sanitize_aapf_option($option);
+        $BeRocket_AAPF = BeRocket_AAPF::getInstance();
+        $option = $BeRocket_AAPF->sanitize_option($option);
         update_option( 'br_filters_options', $option );
         $wizard->redirect_to_next_step();
     }
@@ -224,7 +229,10 @@ class BeRocket_AAPF_Wizard {
                         </tr>
                         <tr class="berocket_wizard_only_seo_friendly"<?php if( empty($option['seo_friendly_urls']) ) echo ' style="display:none;"'?>>
                             <td colspan="2" class="berocket_wizard_only_nice_urls"<?php if( empty($option['nice_urls']) ) echo ' style="display:none;"'?>>
-                                <?php BeRocket_AAPF::br_get_template_part( 'permalink_option' ); ?>
+                                <?php 
+                                $BeRocket_AAPF = BeRocket_AAPF::getInstance();
+                                $BeRocket_AAPF->br_get_template_part( 'permalink_option' );
+                                ?>
                             </td>
                         </tr>
                     </tbody>
@@ -265,14 +273,15 @@ class BeRocket_AAPF_Wizard {
             $option_new['slug_urls'] = '';
             $option_new['nice_urls'] = '';
         }
+        $BeRocket_AAPF = BeRocket_AAPF::getInstance();
         if( ! empty($option_new['nice_urls']) ) {
             if( ! empty($_POST['berocket_permalink_option']) && is_array($_POST['berocket_permalink_option']) ) {
-                $default_values = BeRocket_AAPF::$default_permalink;
-                BeRocket_AAPF::save_permalink_option($default_values);
+                $default_values = $BeRocket_AAPF->default_permalink;
+                $BeRocket_AAPF->save_permalink_option($default_values);
             }
         }
         $option = array_merge($option, $option_new);
-        $option = BeRocket_AAPF::sanitize_aapf_option($option);
+        $option = $BeRocket_AAPF->sanitize_option($option);
         update_option( 'br_filters_options', $option );
         $wizard->redirect_to_next_step();
     }
@@ -343,10 +352,7 @@ class BeRocket_AAPF_Wizard {
                                 <?php if( ! empty($option['hide_value']['empty']) ) echo " checked"; ?>>
                                 <?php _e('Hide empty widget', 'BeRocket_AJAX_domain') ?>
                                 </label></div>
-                                <div><label><input name="berocket_aapf_wizard_settings[hide_value][button]" class="attribute_count_preset_16" type="checkbox" value="1"
-                                <?php if( ! empty($option['hide_value']['button']) ) echo " checked"; ?>>
-                                <?php _e('Hide "Show/Hide value(s)" button', 'BeRocket_AJAX_domain') ?>
-                                </label></div>
+                                <?php do_action('berocket_aapf_wizard_attribute_count_hide_values', $option); ?>
                             </td>
                         </tr>
                         <tr style="display: table-row;">
@@ -403,7 +409,8 @@ class BeRocket_AAPF_Wizard {
         }
         $option_new = array_merge(array('show_all_values' => '', 'hide_value' => array('o' => '', 'sel' => '', 'empty' => '', 'button' => ''), 'recount_products' => ''), $_POST['berocket_aapf_wizard_settings']);
         $option = array_merge($option, $option_new);
-        $option = BeRocket_AAPF::sanitize_aapf_option($option);
+        $BeRocket_AAPF = BeRocket_AAPF::getInstance();
+        $option = $BeRocket_AAPF->sanitize_option($option);
         update_option( 'br_filters_options', $option );
         $wizard->redirect_to_next_step();
     }
@@ -481,7 +488,8 @@ class BeRocket_AAPF_Wizard {
         }
         $option_new = array_merge(array('first_page_jump' => '', 'scroll_shop_top' => '', 'selected_area_show' => '', 'products_only' => '', 'search_fix' => ''), $_POST['berocket_aapf_wizard_settings']);
         $option = array_merge($option, $option_new);
-        $option = BeRocket_AAPF::sanitize_aapf_option($option);
+        $BeRocket_AAPF = BeRocket_AAPF::getInstance();
+        $option = $BeRocket_AAPF->sanitize_option($option);
         update_option( 'br_filters_options', $option );
         $wizard->redirect_to_next_step();
     }
@@ -496,10 +504,50 @@ class BeRocket_AAPF_Wizard {
                 <h4><?php _e('Widget', 'BeRocket_AJAX_domain') ?></h4>
                 <p><?php _e('Now you can add widgets AJAX Product Filters to your side bar', 'BeRocket_AJAX_domain') ?></p>
                 <p><?php _e('More information about widget options you can get on <a target="_blank" href="http://berocket.com/docs/plugin/woocommerce-ajax-products-filter#widget">BeRocket Documentation</a>', 'BeRocket_AJAX_domain') ?></p>
+                <?php
+                $old_filter_widgets = get_option('widget_berocket_aapf_widget');
+                if( ! is_array($old_filter_widgets) ) {
+                    $old_filter_widgets = array();
+                }
+                foreach ($old_filter_widgets as $key => $value) {
+                    if (!is_numeric($key)) {
+                        unset($old_filter_widgets[$key]);
+                    }
+                }
+                $html = '';
+                if( count($old_filter_widgets) ) {
+                    $html = '<h3>' . __('Replace old widgets', 'BeRocket_AJAX_domain') . '</h3>
+                    <div>';
+                        $html .= '<span 
+                            class="button berocket_replace_deprecated_with_new"
+                            data-ready="' . __('Widget replaced', 'BeRocket_AJAX_domain') . '"
+                            data-loading="' . __('Replacing widgets... Please wait', 'BeRocket_AJAX_domain') . '"';
+                            $html .= '>' . __('Replace widgets', 'BeRocket_AJAX_domain');
+                        $html .= '</span>
+                        <p>' . __('Replace deprecated widgets with new single filter widgets', 'BeRocket_AJAX_domain') . '</p>
+                        <script>
+                            jQuery(".berocket_replace_deprecated_with_new").click(function() {
+                                var $this = jQuery(this);
+                                if( ! $this.is(".berocket_ajax_sending") ) {
+                                    $this.data("text", $this.text());
+                                    $this.attr("disabled", "disabled");
+                                    $this.text($this.data("loading"));
+                                    $this.addClass("berocket_ajax_sending");
+                                    jQuery.post("'.admin_url('admin-ajax.php').'", {action:"replace_deprecated_with_new"}, function() {
+                                        $this.text($this.data("ready"));
+                                    });
+                                }
+                            });
+                        </script>
+                    </div>';
+                }
+                echo $html;
+                ?>
             </div>
-            <?php wp_nonce_field( $wizard->page_id ); ?>
+            <?php 
+            wp_nonce_field( $wizard->page_id ); ?>
             <p class="next-step">
-                <input type="submit" class="button-primary button button-large button-next" value="<?php esc_attr_e( "Open plugin settings", 'BeRocket_AJAX_domain' ); ?>" name="save_step" />
+                <input type="submit" class="button-primary button button-large button-next" value="<?php esc_attr_e( "Create new filter right now", 'BeRocket_AJAX_domain' ); ?>" name="save_step" />
             </p>
         </form>
         <?php
@@ -507,7 +555,8 @@ class BeRocket_AAPF_Wizard {
 
     public static function wizard_ready_save($wizard) {
         check_admin_referer( $wizard->page_id );
-        wp_redirect( admin_url( 'admin.php?page='.BeRocket_AAPF::$values['option_page'] ) );
+        $BeRocket_AAPF = BeRocket_AAPF::getInstance();
+        wp_redirect( admin_url( 'post-new.php?post_type=br_product_filter&aapf=singlewizard' ) );
     }
 }
 new BeRocket_AAPF_Wizard();

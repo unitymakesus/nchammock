@@ -1,0 +1,19 @@
+{
+    "name"          : "security-safe",
+    "description"   : "",
+    "keywords"      : ["security safe", "security", "wp security", "hacking", "hardening", "hacked"],
+    "homepage"      : "https://sovstack.com/",
+    "authors"       : [
+                        {
+                          "name": "Sovereign Stack, LLC",
+                          "email": "support@sovstack.com",
+                          "homepage": "https://sovstack.com/"
+                        }
+                      ],
+    "type"          : "wordpress-plugin",
+    "autoload": {
+        "psr-4": {
+            "SecuritySafe\\": ["common/","common/policies/","admin/"]
+        }
+    }
+}

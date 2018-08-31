@@ -1244,3 +1244,6 @@ div.berocket_single_filter_widget div.berocket_aapf_widget-wrapper * {
         display: none!important;
     }
 }
+.berocket_aapf_widget select {
+    overflow: auto!important;
+}

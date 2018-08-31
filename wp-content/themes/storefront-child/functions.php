@@ -10,6 +10,9 @@ function header_add_and_remove() {
   remove_action( 'storefront_header', 'storefront_primary_navigation', 50 );
   add_action( 'storefront_before_content', 'storefront_primary_navigation', 5 );
 
+  remove_action( 'storefront_header', 'storefront_skip_links', 5);
+  add_action( 'storefront_before_content', 'storefront_skip_links', 50);
+
   remove_action( 'storefront_header', 'storefront_secondary_navigation', 30 );
 }
 add_action( 'init' , 'header_add_and_remove');
@@ -31,6 +34,16 @@ function homepage_add_and_remove() {
   remove_action( 'storefront_homepage', 'storefront_homepage_header', 10 );
 }
 add_action( 'init' , 'homepage_add_and_remove');
+
+
+// Change Featured Products #
+function custom_storefront_featured_product_per_page( $args ) {
+ $args['per_page'] = 9;
+ return $args;
+}
+
+add_filter('storefront_featured_products_shortcode_args','custom_storefront_featured_product_per_page' );
+
 
 // Customizing Site Logo
 function custom_logo_size() {
@@ -136,9 +149,9 @@ function bbloomer_remove_what_is_paypal( $icon_html, $gateway_id ) {
 function auth_retailers_shortcode() { ob_start(); ?>
 
 <div class="authorized-retailers">
-  <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/images/cacoon.png"/>
-  <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/images/pawleys.png"/>
-  <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/images/hatteras.png"/>
+  <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/images/cacoon.png" alt="Cacoon Company"/>
+  <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/images/pawleys.png" alt="Pawley's Island Hammocks"/>
+  <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/images/hatteras.png" alt="Hatteras Hammocks"/>
 </div>
 
 <?php
